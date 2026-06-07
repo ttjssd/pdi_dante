@@ -35,6 +35,7 @@
   "build": {
     "appId": "com.dante.pdi-backoffice",
     "productName": "PDI Backoffice",
+    "executableName": "PDI Backoffice",
     "asar": false,
     "directories": {
       "output": "outputs/electron"
@@ -44,6 +45,14 @@
       ".next/standalone/**/*",
       ".next/static/**/*",
       "public/**/*",
+      "node_modules/electron-updater/**/*",
+      "node_modules/builder-util-runtime/**/*",
+      "node_modules/lazy-val/**/*",
+      "node_modules/lodash.escaperegexp/**/*",
+      "node_modules/semver/**/*",
+      "node_modules/js-yaml/**/*",
+      "node_modules/debug/**/*",
+      "node_modules/ms/**/*",
       "package.json"
     ],
     "win": {
@@ -54,12 +63,16 @@
       "artifactName": "PDI-Backoffice-Setup-${version}.${ext}"
     },
     "nsis": {
+      "guid": "9f6e4d2b-0c8a-4d9f-9c3e-2f6a7b8c1d20",
       "oneClick": false,
       "perMachine": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "PDI Backoffice"
+      "shortcutName": "PDI Backoffice",
+      "uninstallDisplayName": "PDI Backoffice",
+      "deleteAppDataOnUninstall": false,
+      "runAfterFinish": false
     },
     "publish": [
       {

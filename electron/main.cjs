@@ -7,7 +7,7 @@ const packageJson = require("../package.json");
 
 const PORT = process.env.PDI_PORT || "3187";
 const APP_URL = `http://127.0.0.1:${PORT}`;
-const APP_TITLE = packageJson.build?.productName || "PDI Backoffice";
+const APP_TITLE = "PDI Backoffice";
 let nextProcess;
 let mainWindow;
 let autoUpdater;

@@ -23,6 +23,11 @@ for (const [sourceName, targetName] of guideImages) {
     await copyFile(sourcePath, targetPath);
     console.log(`[guide-image] ${targetName}`);
   } catch (error) {
+    const hasExistingTarget = await stat(targetPath).then(() => true).catch(() => false);
+    if (hasExistingTarget && ["ENOENT", "EPERM", "EACCES", "EBUSY"].includes(error?.code)) {
+      console.warn(`[guide-image] 기존 파일 유지: ${targetName}`);
+      continue;
+    }
     if (error?.code !== "ENOENT") throw error;
     console.warn(`[guide-image] 원본을 찾지 못해 건너뜀: ${sourceName}`);
   }
