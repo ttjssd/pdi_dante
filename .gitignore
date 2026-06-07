@@ -1,0 +1,7 @@
+node_modules
+.next
+out
+outputs/electron
+*.log
+.DS_Store
+.env*.local

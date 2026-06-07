@@ -1,0 +1,72 @@
+{
+  "name": "pdi-backoffice-supporter",
+  "version": "1.7.0",
+  "description": "PDI 업무 보조 콘솔",
+  "author": "dante",
+  "private": true,
+  "main": "electron/main.cjs",
+  "scripts": {
+    "sync:guide-images": "node scripts/sync-guide-images.mjs",
+    "predev": "npm run sync:guide-images",
+    "dev": "next dev",
+    "prebuild": "npm run sync:guide-images",
+    "build": "next build",
+    "prepare:electron": "node scripts/prepare-electron.mjs",
+    "electron:dev": "npm run sync:guide-images && electron .",
+    "pack:electron": "npm run build && npm run prepare:electron && electron-builder --dir",
+    "build:electron": "npm run build && npm run prepare:electron && electron-builder",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "electron-updater": "^6.8.9",
+    "next": "14.2.35",
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "22.7.4",
+    "@types/react": "18.3.11",
+    "@types/react-dom": "18.3.1",
+    "electron": "^31.7.0",
+    "electron-builder": "^24.13.3",
+    "typescript": "5.6.2"
+  },
+  "build": {
+    "appId": "com.dante.pdi-backoffice",
+    "productName": "PDI Backoffice",
+    "asar": false,
+    "directories": {
+      "output": "outputs/electron"
+    },
+    "files": [
+      "electron/**/*",
+      ".next/standalone/**/*",
+      ".next/static/**/*",
+      "public/**/*",
+      "package.json"
+    ],
+    "win": {
+      "signAndEditExecutable": false,
+      "target": [
+        "nsis"
+      ],
+      "artifactName": "PDI-Backoffice-Setup-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "PDI Backoffice"
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "ttjssd",
+        "repo": "pdi_dante"
+      }
+    ]
+  }
+}
