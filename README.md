@@ -14,6 +14,8 @@
 - 추천 카테고리, 작업, 키워드 직접 수정 및 항목 추가·삭제
 - 실제 신청할 항목 선택 및 선택 결과 전체 복사
 - 최근 상품화 추천 기록을 브라우저 `localStorage`에 최대 30건 저장
+- 콘솔 도구 키워드 검색
+- 프라이빗 런처 영상, 밝기, 순서, PIN 로컬 설정
 - 저장 기록 다시 불러오기 및 삭제
 - 모바일과 PC 반응형 UI
 - 외부 API 없이 브라우저에서 동작
@@ -28,6 +30,8 @@
 - `/transport-tools`: 탁송 보조 툴
 - `/transport-tools/issue-helper`: 탁송 이슈 응답 보조
 - `/transport-tools/jeju-request`: 제주도 탁송 요청 문구 생성
+- `/hangdong-guide`: 항동센터 가이드
+- `/settings`: 프라이빗 모드 설정
 
 자동 분석 결과는 현장 문장 형태에 따라 달라질 수 있으므로 문구 생성 전에 추출값을 확인해 주세요.
 
@@ -60,4 +64,11 @@ npm run build:electron
 ```
 
 `pack:electron`은 빠르게 `outputs/electron/win-unpacked/PDI Backoffice.exe`를 만듭니다.
-`build:electron`이 성공하면 `outputs/electron` 폴더에 단일 포터블 `PDI Backoffice.exe` 생성을 시도합니다.
+`build:electron`은 `outputs/electron` 폴더에 Setup EXE, blockmap, `latest.yml`을 생성합니다.
+
+소스 커밋과 push 이후 GitHub Release까지 자동 처리하려면:
+
+```bash
+gh auth login
+npm run release:electron
+```

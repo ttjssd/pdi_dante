@@ -24,9 +24,9 @@ npm run build:electron
 
 성공하면 `outputs/electron` 폴더에 아래 파일이 생성됩니다.
 
-- `PDI-Backoffice-Setup-1.7.0.exe`
+- `PDI-Backoffice-Setup-1.8.1.exe`
 - `latest.yml`
-- `PDI Backoffice Setup 1.7.0.exe.blockmap`
+- `PDI-Backoffice-Setup-1.8.1.exe.blockmap`
 
 이 3개 파일은 GitHub Releases에 업로드되어야 자동 업데이트가 정상 동작합니다.
 
@@ -46,7 +46,7 @@ outputs/electron/win-unpacked/PDI Backoffice.exe
 
 ## 3. 업무용 노트북 최초 설치
 
-1. `outputs/electron/PDI-Backoffice-Setup-1.7.0.exe`를 업무용 노트북으로 옮깁니다.
+1. `outputs/electron/PDI-Backoffice-Setup-1.8.1.exe`를 업무용 노트북으로 옮깁니다.
 2. 설치파일을 실행합니다.
 3. 설치 과정에서 시작 메뉴/바탕화면 바로가기를 생성합니다.
 4. `PDI Backoffice`를 실행하면 `/` 런처 화면이 먼저 열립니다.
@@ -58,22 +58,22 @@ outputs/electron/win-unpacked/PDI Backoffice.exe
    - https://github.com/ttjssd/pdi_dante
 2. 오른쪽 `Releases` 또는 `Create a new release`로 이동합니다.
 3. 릴리즈 정보를 입력합니다.
-   - tag: `v1.7.0`
-   - title: `PDI Backoffice 1.7.0`
+   - tag: `v1.8.1`
+   - title: `PDI Backoffice 1.8.1`
 4. 아래 파일 3개를 업로드합니다.
-   - `outputs/electron/PDI-Backoffice-Setup-1.7.0.exe`
+   - `outputs/electron/PDI-Backoffice-Setup-1.8.1.exe`
    - `outputs/electron/latest.yml`
-   - `outputs/electron/PDI Backoffice Setup 1.7.0.exe.blockmap`
+   - `outputs/electron/PDI-Backoffice-Setup-1.8.1.exe.blockmap`
 5. `Publish release`를 클릭합니다.
 
 ## 5. 다음 버전 배포 방법
 
-예: `1.7.0`에서 `1.8.0`으로 배포하는 경우
+예: `1.8.1`에서 `1.8.2`로 배포하는 경우
 
-1. `package.json`의 `version`을 `1.8.0`으로 변경
-2. `package-lock.json`의 root version도 `1.8.0`으로 변경
-3. `app/config.ts`의 `APP_VERSION`을 `1.8.0`으로 변경
-4. `app/platformData.ts` 업데이트 내역에 `1.8.0` 항목 추가
+1. `package.json`의 `version`을 `1.8.2`로 변경
+2. `package-lock.json`의 root version도 `1.8.2`로 변경
+3. `app/config.ts`의 `APP_VERSION`을 `1.8.2`로 변경
+4. `app/platformData.ts` 업데이트 내역에 `1.8.2` 항목 추가
 5. 빌드 실행
 
 ```bash
@@ -82,15 +82,41 @@ npm run build:electron
 ```
 
 6. GitHub Releases에 새 릴리즈 생성
-   - tag: `v1.8.0`
-   - title: `PDI Backoffice 1.8.0`
+   - tag: `v1.8.2`
+   - title: `PDI Backoffice 1.8.2`
 7. 새 버전 산출물 3개 업로드
-   - `PDI-Backoffice-Setup-1.8.0.exe`
+   - `PDI-Backoffice-Setup-1.8.2.exe`
    - `latest.yml`
-   - `PDI Backoffice Setup 1.8.0.exe.blockmap`
+   - `PDI-Backoffice-Setup-1.8.2.exe.blockmap`
 8. 업무용 노트북에서 PDI Backoffice 실행
 9. 런처에서 업데이트 감지
 10. 다운로드 완료 후 `RESTART TO UPDATE` 클릭
+
+## 5-1. 한 명령 릴리즈
+
+소스 커밋과 push가 완료된 깨끗한 작업 폴더에서 아래 명령을 실행합니다.
+
+```bash
+npm run release:electron
+```
+
+자동 처리 항목:
+
+1. `package.json`, `package-lock.json`, `app/config.ts` 버전 일치 검사
+2. Git 작업 폴더가 깨끗한지 검사
+3. 기존 로컬 Setup EXE, blockmap, `latest.yml` 정리
+4. Electron 설치파일 빌드
+5. 필수 파일 3개 생성 확인
+6. `ttjssd/pdi_dante` GitHub Release 생성 또는 기존 태그 파일 교체
+
+사전 준비:
+
+```bash
+gh auth login
+```
+
+`gh` 명령이 없다면 GitHub CLI를 먼저 설치해야 합니다.
+소스 커밋과 push는 자동으로 수행하지 않습니다.
 
 ## 6. GH_TOKEN 자동 publish
 

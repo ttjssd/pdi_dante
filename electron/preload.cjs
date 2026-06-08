@@ -10,3 +10,15 @@ contextBridge.exposeInMainWorld("pdiUpdater", {
     return ipcRenderer.invoke("updater:restart");
   },
 });
+
+contextBridge.exposeInMainWorld("pdiWindow", {
+  enterConsoleMode() {
+    return ipcRenderer.invoke("window:enter-console-mode");
+  },
+  toggleMaximize() {
+    return ipcRenderer.invoke("window:toggle-maximize");
+  },
+  getMode() {
+    return ipcRenderer.invoke("window:get-mode");
+  },
+});

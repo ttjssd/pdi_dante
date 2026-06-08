@@ -1,9 +1,9 @@
-import Link from "next/link";
 import { DashboardCard, PlatformHeader, StatCard } from "../components/platform";
 import RecentRecordsStat from "../components/RecentRecordsStat";
+import ToolSearch from "../components/ToolSearch";
 import UpdateLog from "../components/UpdateLog";
 import { APP_VERSION_LABEL } from "../config";
-import { categories, updates } from "../platformData";
+import { categories, toolSearchItems, updates } from "../platformData";
 
 export default function PlatformConsole() {
   return (
@@ -19,16 +19,17 @@ export default function PlatformConsole() {
           <div className="hero-telemetry">
             <span>LOCAL WORKSPACE</span>
             <strong><i /> SYSTEM READY</strong>
-            <Link className="console-launcher-link" href="/">런처로 돌아가기</Link>
           </div>
         </section>
 
         <section className="stats-grid" aria-label="플랫폼 통계">
-          <StatCard label="사용 가능 도구 수" value="4" accent="cyan" />
-          <StatCard label="ON 기능 수" value="4" accent="green" />
+          <StatCard label="사용 가능 도구 수" value="5" accent="cyan" />
+          <StatCard label="ON 기능 수" value="5" accent="green" />
           <RecentRecordsStat />
           <StatCard label="개발중 기능 수" value="0" accent="slate" />
         </section>
+
+        <ToolSearch items={toolSearchItems} />
 
         <section className="platform-section">
           <div className="platform-section-heading">

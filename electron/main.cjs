@@ -43,6 +43,15 @@ function sendUpdateStatus(payload) {
   mainWindow.webContents.send("updater:status", payload);
 }
 
+
+function getWindowMode() {
+  if (!mainWindow || mainWindow.isDestroyed()) return { maximized: false, fullScreen: false };
+  return {
+    maximized: mainWindow.isMaximized(),
+    fullScreen: mainWindow.isFullScreen(),
+  };
+}
+
 function setupAutoUpdater() {
   if (!autoUpdater) return;
   autoUpdater.on("checking-for-update", () => {
@@ -155,6 +164,25 @@ async function createWindow() {
 }
 
 setupAutoUpdater();
+
+
+ipcMain.handle("window:enter-console-mode", () => {
+  if (!mainWindow || mainWindow.isDestroyed()) return getWindowMode();
+  mainWindow.maximize();
+  return getWindowMode();
+});
+
+ipcMain.handle("window:toggle-maximize", () => {
+  if (!mainWindow || mainWindow.isDestroyed()) return getWindowMode();
+  if (mainWindow.isMaximized()) {
+    mainWindow.restore();
+  } else {
+    mainWindow.maximize();
+  }
+  return getWindowMode();
+});
+
+ipcMain.handle("window:get-mode", () => getWindowMode());
 
 ipcMain.handle("updater:restart", () => {
   if (!autoUpdater) return false;

@@ -104,6 +104,16 @@ export const issueTemplates: TransportIssueTemplate[] = [
     movementGuide: "계기판 주행가능거리를 확인한 뒤 가까운 보충 장소까지 이동 가능한 경우에만 최소 거리로 이동합니다.",
   },
   {
+    id: "tire-cord-m2",
+    title: "타이어 코드절상 / 재고 없음 / M2 입고 안내",
+    risk: "높음",
+    keywords: ["코드절상", "타이어 코드", "타이어 손상", "뒤 타이어", "앞 타이어", "타이어 재고", "재고 없음", "교체 힘듦", "교체 어려움", "황동 인근 타이어점", "항동 인근 타이어점", "인근 타이어점", "m2 입고", "m2 진행", "입고 진행", "타이어 규격"],
+    checks: ["손상 위치 확인", "타이어 규격 확인", "코드절상 여부 확인", "인근 타이어점 재고 여부 확인", "현장 교체 가능 여부 확인", "M2 입고 필요 여부 확인"],
+    requests: ["손상 타이어 위치와 사진", "타이어 규격", "인근 타이어점 재고 확인 결과", "현장 교체 가능 여부", "M2 입고 진행 가능 여부"],
+    driverReply: "안녕하세요.\n해당 차량 타이어 코드절상 확인되었습니다.\n\n인근 타이어점에는 동일 규격 재고가 없어 현장 교체는 어려울 것 같습니다.\nM2 입고 진행하겠습니다.\n\n안녕하세요 케이든,\n위 차량 황동 인근 타이어점은 재고가 없어 교체가 힘들 것 같습니다.\nM2 입고 진행하겠습니다.",
+    internalMessage: "[차량번호] 타이어 코드절상 확인되었습니다.\n인근 타이어점 동일 규격 재고 부재로 현장 교체 어려워 M2 입고 진행 예정입니다.",
+    movementGuide: "타이어 코드절상은 안전 이슈가 있으므로 추가 주행은 보류하고, 필요 시 M2 입고 또는 견인/탁송 방향으로 진행합니다.",
+  },  {
     id: "tire",
     title: "공기압 경고 / 타이어 이상",
     risk: "주의",
@@ -192,7 +202,6 @@ export const issueTemplates: TransportIssueTemplate[] = [
     movementGuide: "안전 여부가 확인되지 않은 상태에서는 무리하게 이동하지 않고 현장 정보 확인을 우선합니다.",
   },
 ];
-
 const highRiskTireKeywords = ["펑크", "주저앉음", "찢김", "사이드월"];
 
 function findTemplate(id: string) {
@@ -218,6 +227,10 @@ export function recommendIssue(rawText: string) {
   const brake = findTemplate("brake");
   const brakeMatches = findMatches(text, brake.keywords);
   if (brakeMatches.length) return choose("brake", brakeMatches);
+
+  const tireCord = findTemplate("tire-cord-m2");
+  const tireCordMatches = findMatches(text, tireCord.keywords);
+  if (tireCordMatches.length) return choose("tire-cord-m2", tireCordMatches);
 
   const deliveryContext = findMatches(text, [
     "차량 전달 완료", "차량 전달 후", "고객님께 전달", "고객에게 전달",

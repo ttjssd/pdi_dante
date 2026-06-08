@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import BrandIcon from "./BrandIcon";
+import WindowModeControl from "./WindowModeControl";
 
 export type Status = "LIVE" | "BETA" | "SOON";
 export type Tone = "blue" | "cyan" | "teal" | "purple" | "slate" | "indigo";
@@ -25,7 +26,11 @@ export function PlatformHeader() {
           <small>PERSONAL OPS CONSOLE</small>
         </span>
       </Link>
-      <div className="header-status"><span /> LOCAL WORKSPACE</div>
+      <div className="header-actions">
+        <div className="header-status"><span /> LOCAL WORKSPACE</div>
+        <Link className="header-settings-link" href="/settings">개인 설정</Link>
+        <WindowModeControl />
+      </div>
     </header>
   );
 }

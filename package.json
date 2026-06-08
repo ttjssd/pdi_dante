@@ -1,6 +1,6 @@
 {
   "name": "pdi-backoffice-supporter",
-  "version": "1.7.0",
+  "version": "1.8.1",
   "description": "PDI 업무 보조 콘솔",
   "author": "dante",
   "private": true,
@@ -15,6 +15,7 @@
     "electron:dev": "npm run sync:guide-images && electron .",
     "pack:electron": "npm run build && npm run prepare:electron && electron-builder --dir",
     "build:electron": "npm run build && npm run prepare:electron && electron-builder",
+    "release:electron": "node scripts/release-electron.mjs",
     "start": "next start",
     "lint": "next lint"
   },
@@ -43,8 +44,6 @@
     "files": [
       "electron/**/*",
       ".next/standalone/**/*",
-      ".next/static/**/*",
-      "public/**/*",
       "node_modules/electron-updater/**/*",
       "node_modules/builder-util-runtime/**/*",
       "node_modules/lazy-val/**/*",
