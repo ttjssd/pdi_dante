@@ -2,6 +2,7 @@
 
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import {
+  buildWeeklyRecordStatuses,
   DAILY_WORK_LOG_STORAGE_KEY,
   filterRecordsByPeriod,
   formatDateTime,
@@ -64,6 +65,16 @@ export default function DailyWorkLogClient() {
     [records, period],
   );
   const totals = useMemo(() => summarize(currentRecords), [currentRecords]);
+  const weeklyStatuses = useMemo(
+    () => buildWeeklyRecordStatuses(records, period.start, period.end),
+    [records, period],
+  );
+  const statusSummary = useMemo(() => ({
+    complete: weeklyStatuses.filter((item) => item.state === "complete").length,
+    missing: weeklyStatuses.filter((item) => item.state === "missing").length,
+    duplicate: weeklyStatuses.filter((item) => item.state === "duplicate").length,
+    warning: weeklyStatuses.filter((item) => item.state === "warning").length,
+  }), [weeklyStatuses]);
 
   function registerRecord() {
     if (!rawText.trim()) {
@@ -232,6 +243,42 @@ export default function DailyWorkLogClient() {
           <div className="weekly-record-count"><strong>{currentRecords.length}</strong><span>개 일일 기록</span></div>
         </div>
 
+        <div className={`weekly-integrity-summary ${statusSummary.missing || statusSummary.duplicate || statusSummary.warning ? "has-issues" : ""}`}>
+          <div>
+            <strong>주간 기록 상태</strong>
+            <span>
+              정상 {statusSummary.complete}일 · 미등록 {statusSummary.missing}일 ·
+              중복 {statusSummary.duplicate}일 · 추출 확인 {statusSummary.warning}일
+            </span>
+          </div>
+          <small>오늘 이후 날짜는 예정으로 표시되며 누락에 포함하지 않습니다.</small>
+        </div>
+
+        <div className="weekly-coverage-grid">
+          {weeklyStatuses.map((item) => (
+            <article className={`coverage-${item.state}`} key={item.date}>
+              <div>
+                <span>{formatCoverageDate(item.date)}</span>
+                <strong>{item.weekday}</strong>
+              </div>
+              <StatusLabel state={item.state} count={item.records.length} />
+              {item.records.length > 0 && (
+                <p>
+                  입고 {item.records.reduce((sum, record) => sum + (record.dailyInboundCount || 0), 0)} ·
+                  출고 {item.records.reduce((sum, record) => sum + record.dailyTransportHandOverCount, 0)} ·
+                  준비 {item.records.reduce((sum, record) => sum + record.dailyReadyCount, 0)}
+                </p>
+              )}
+              {item.warnings.length > 0 && <small>확인: {item.warnings.join(", ")}</small>}
+              {item.records.length > 0 && (
+                <button type="button" onClick={() => loadRecord(item.records[0])}>
+                  {item.records.length > 1 ? "첫 기록 확인" : "원문 확인"}
+                </button>
+              )}
+            </article>
+          ))}
+        </div>
+
         <div className="weekly-metric-grid">
           <Metric label="금주 입고 완료" value={totals.inbound} />
           <Metric label="출고 완료" value={totals.handover} />
@@ -258,6 +305,22 @@ export default function DailyWorkLogClient() {
 
 function Metric({ label, value }: { label: string; value: number }) {
   return <article><span>{label}</span><strong>{value}<small>대</small></strong></article>;
+}
+
+function StatusLabel({ state, count }: { state: "complete" | "missing" | "future" | "duplicate" | "warning"; count: number }) {
+  const labels = {
+    complete: "등록 완료",
+    missing: "미등록",
+    future: "예정",
+    duplicate: `중복 ${count}건`,
+    warning: "추출 확인",
+  };
+  return <em>{labels[state]}</em>;
+}
+
+function formatCoverageDate(date: string) {
+  const [, month, day] = date.split("-");
+  return `${Number(month)}/${Number(day)}`;
 }
 
 function summarize(records: DailyWorkLog[]) {

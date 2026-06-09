@@ -21,6 +21,14 @@ export type DailyWorkLog = {
 
 export type DailyWorkLogDraft = Omit<DailyWorkLog, "id" | "createdAt" | "updatedAt">;
 
+export type WeeklyRecordStatus = {
+  date: string;
+  weekday: string;
+  records: DailyWorkLog[];
+  state: "complete" | "missing" | "future" | "duplicate" | "warning";
+  warnings: string[];
+};
+
 const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
 
 export function createEmptyDraft(date = formatDateInput(new Date())): DailyWorkLogDraft {
@@ -196,6 +204,49 @@ export function shiftDate(date: string, days: number) {
   const parsed = parseDateInput(date);
   parsed.setDate(parsed.getDate() + days);
   return formatDateInput(parsed);
+}
+
+export function buildWeeklyRecordStatuses(
+  records: DailyWorkLog[],
+  startDate: string,
+  endDate: string,
+  today = new Date(),
+): WeeklyRecordStatus[] {
+  const todayValue = formatDateInput(today);
+  const statuses: WeeklyRecordStatus[] = [];
+  let cursor = startDate;
+
+  while (cursor <= endDate) {
+    const dateRecords = records.filter((record) => record.date === cursor);
+    const warnings = unique(dateRecords.flatMap(getExtractionWarnings));
+    let state: WeeklyRecordStatus["state"] = "complete";
+
+    if (dateRecords.length === 0) state = cursor > todayValue ? "future" : "missing";
+    else if (dateRecords.length > 1) state = "duplicate";
+    else if (warnings.length > 0) state = "warning";
+
+    statuses.push({
+      date: cursor,
+      weekday: WEEKDAYS[parseDateInput(cursor).getDay()],
+      records: dateRecords,
+      state,
+      warnings,
+    });
+    cursor = shiftDate(cursor, 1);
+  }
+
+  return statuses;
+}
+
+export function getExtractionWarnings(record: DailyWorkLog) {
+  const text = record.rawText || "";
+  const checks = [
+    { label: "입고 완료", pattern: /(?:금일\s*)?(?:차량\s*)?입고(?:\s*완료)?\s*[-:：]?\s*\d+\s*대/i },
+    { label: "출고준비", pattern: /차량\s*출고\s*준비\s*[-:：]?\s*\d+\s*대/i },
+    { label: "탁송 인계", pattern: /금일\s*탁송\s*인계\s*[-:：]?\s*\d+\s*대/i },
+    { label: "특이사항", pattern: /특이사항\s*차량\s*(?:총)?\s*\d+\s*대/i },
+  ];
+  return checks.filter((check) => !check.pattern.test(text)).map((check) => check.label);
 }
 
 export function splitLines(value: string) {

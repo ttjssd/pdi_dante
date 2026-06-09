@@ -73,7 +73,7 @@ async function main() {
 
   const initialPath = await evaluate("location.pathname");
   const launcherText = await evaluate(
-    'document.querySelector(".launcher-start-button")?.textContent.includes("START") && document.body.innerText.includes("v1.9.1")',
+    'document.querySelector(".launcher-start-button")?.textContent.includes("START") && document.body.innerText.includes("v1.9.2")',
   );
   const localBackgroundBridge = await evaluate(
     'Boolean(window.pdiBackgrounds && window.pdiBackgrounds.list && window.pdiBackgrounds.add && window.pdiBackgrounds.remove)',
@@ -128,7 +128,7 @@ async function main() {
   await delay(900);
   const operationsPath = await evaluate("location.pathname");
   const operationsReady = await evaluate(
-    'document.body.innerText.includes("일일 업무일지 · 주간 리포트") && document.body.innerText.includes("일일 업무일지 등록") && document.body.innerText.includes("주간 핵심 수치 취합") && document.body.innerText.includes("JSON 내보내기")',
+    'document.body.innerText.includes("일일 업무일지 · 주간 리포트") && document.body.innerText.includes("일일 업무일지 등록") && document.body.innerText.includes("주간 핵심 수치 취합") && document.body.innerText.includes("주간 기록 상태") && document.body.innerText.includes("JSON 내보내기")',
   );
   const originalDailyRecords = await evaluate('localStorage.getItem("pdi-daily-work-log-v1")');
   await evaluate('localStorage.removeItem("pdi-daily-work-log-v1")');
@@ -157,6 +157,9 @@ async function main() {
   await delay(350);
   const operationsParsed = await evaluate(
     'document.body.innerText.includes("입고 12 · 출고 11 · 출고준비 14 · 특이사항 3") && JSON.parse(localStorage.getItem("pdi-daily-work-log-v1") || "[]").some((record) => record.dailyInboundCount === 12 && record.dailyReadyCount === 14 && record.dailyTransportHandOverCount === 11 && record.specialReadyCount === 3)',
+  );
+  const weeklyCoverageReady = await evaluate(
+    'document.querySelectorAll(".weekly-coverage-grid > article").length === 7 && document.body.innerText.includes("등록 완료") && document.body.innerText.includes("미등록") && document.body.innerText.includes("예정")',
   );
   await evaluate(
     originalDailyRecords === null
@@ -202,6 +205,7 @@ async function main() {
     operationsPath,
     operationsReady,
     operationsParsed,
+    weeklyCoverageReady,
     codeCutRecommended,
   };
   console.log(JSON.stringify(result, null, 2));

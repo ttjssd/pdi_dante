@@ -100,6 +100,11 @@ export const updates: UpdateGroup[] = [
     items: [
       {
         version: APP_VERSION,
+        title: "주간 기록 누락 감지",
+        description: "금~목 일일 기록의 미등록, 중복, 핵심 수치 추출 누락을 날짜별로 확인할 수 있게 했습니다.",
+      },
+      {
+        version: "1.9.1",
         title: "업무일지 등록 흐름 간소화",
         description: "일일 원문 등록·보관과 입고·출고·출고준비·특이사항 주간 합산 중심으로 화면을 정리했습니다.",
       },
