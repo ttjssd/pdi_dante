@@ -4,6 +4,7 @@ export type DailyWorkLog = {
   id: string;
   date: string;
   weekday: string;
+  dailyInboundCount: number;
   dailyReadyCount: number;
   specialReadyCount: number;
   dailyTransportHandOverCount: number;
@@ -20,32 +21,6 @@ export type DailyWorkLog = {
 
 export type DailyWorkLogDraft = Omit<DailyWorkLog, "id" | "createdAt" | "updatedAt">;
 
-export type WeeklyManualFields = {
-  inboundCount: string;
-  waitingCount: string;
-  potholeCount: string;
-  maintenanceCount: string;
-  smartKeyCount: string;
-  batteryCount: string;
-  otherIssueCount: string;
-  otherWork: string;
-  discussion: string;
-  nextWeek: string;
-};
-
-export const EMPTY_WEEKLY_MANUAL_FIELDS: WeeklyManualFields = {
-  inboundCount: "",
-  waitingCount: "",
-  potholeCount: "",
-  maintenanceCount: "",
-  smartKeyCount: "",
-  batteryCount: "",
-  otherIssueCount: "",
-  otherWork: "",
-  discussion: "",
-  nextWeek: "",
-};
-
 const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
 
 export function createEmptyDraft(date = formatDateInput(new Date())): DailyWorkLogDraft {
@@ -53,6 +28,7 @@ export function createEmptyDraft(date = formatDateInput(new Date())): DailyWorkL
   return {
     date,
     weekday: WEEKDAYS[parsedDate.getDay()],
+    dailyInboundCount: 0,
     dailyReadyCount: 0,
     specialReadyCount: 0,
     dailyTransportHandOverCount: 0,
@@ -80,6 +56,10 @@ export function parseDailyWorkLog(rawText: string, today = new Date()): DailyWor
     draft.weekday = header[4].trim();
   }
 
+  draft.dailyInboundCount = extractCount(
+    normalized,
+    /(?:금일\s*)?(?:차량\s*)?입고(?:\s*완료)?\s*[-:：]?\s*(\d+)\s*대/i,
+  );
   draft.dailyReadyCount = extractCount(normalized, /차량\s*출고\s*준비\s*[-:：]?\s*(\d+)\s*대/i);
   draft.specialReadyCount = extractCount(normalized, /특이사항\s*차량\s*(?:총)?\s*(\d+)\s*대/i);
   draft.dailyTransportHandOverCount = extractCount(normalized, /금일\s*탁송\s*인계\s*[-:：]?\s*(\d+)\s*대/i);
@@ -90,7 +70,7 @@ export function parseDailyWorkLog(rawText: string, today = new Date()): DailyWor
   for (const originalLine of lines) {
     const line = cleanLine(originalLine);
     if (!line || line.includes("일일 업무일지")) continue;
-    if (/차량\s*출고\s*준비|준비\s*중.*특이사항|금일\s*탁송\s*인계/.test(line)) continue;
+    if (/입고(?:\s*완료)?.*\d+\s*대|차량\s*출고\s*준비|준비\s*중.*특이사항|금일\s*탁송\s*인계/.test(line)) continue;
     if (/금일\s*탁송\s*이력/.test(line)) continue;
 
     if (/항동\s*관리\s*업무/.test(line)) {
@@ -161,102 +141,49 @@ export function getMeetingPeriod(baseDate = new Date()) {
   return { start: formatDateInput(start), end: formatDateInput(end) };
 }
 
-export function generateDailySlackText(draft: DailyWorkLogDraft) {
-  const management = draft.managementTasks.length
-    ? draft.managementTasks.map((item) => `  ○ ${item}`).join("\n")
-    : "  ○ 없음";
-  const peopleSections = [
-    formatPeopleSection("8TO16", draft.shiftWorkers),
-    formatPeopleSection("올도 PDI 지원", draft.oldoSupport),
-    formatPeopleSection("연차", draft.leaveList),
-    formatPeopleSection("공가/휴가", draft.publicLeaveList),
-  ].filter(Boolean).join("\n\n");
-  const other = draft.otherNotes.length
-    ? `\n\n• 기타 메모\n${draft.otherNotes.map((item) => `  ○ ${item}`).join("\n")}`
-    : "";
-
-  return `[${formatShortDate(draft.date)} (${draft.weekday}) 항동 - PDI 일일 업무일지]
-
-• 차량출고준비 - ${draft.dailyReadyCount}대
-  (준비 중, 특이사항 차량 총 ${draft.specialReadyCount}대)
-
-• 금일 탁송 인계 - ${draft.dailyTransportHandOverCount}대
-  ○ 금일 탁송 이력 항동 PDI 퀵 탁송 이력 확인 가능
-
-• 항동 관리 업무
-${management}
-
-[항동 PDI 인사]
-${peopleSections || "• 인사 기록\n  ○ 없음"}${other}`;
-}
-
 export function generateWeeklyReport(
   records: DailyWorkLog[],
   previousRecords: DailyWorkLog[],
   startDate: string,
   endDate: string,
-  manual: WeeklyManualFields,
 ) {
   const current = summarizeRecords(records);
   const previous = summarizeRecords(previousRecords);
   const hasPrevious = previousRecords.length > 0;
-  const routineTasks = unique(records.flatMap((record) => record.managementTasks));
-  const leaveItems = records.flatMap((record) => [
-    ...record.leaveList.map((item) => `${formatShortDate(record.date)} 연차 - ${item}`),
-    ...record.publicLeaveList.map((item) => `${formatShortDate(record.date)} 공가/휴가 - ${item}`),
-  ]);
-  const shiftLines = records
-    .filter((record) => record.shiftWorkers.length)
-    .map((record) => `${formatShortDate(record.date)} (${record.weekday}) - ${record.shiftWorkers.join(", ")}`);
-  const oldoLines = records
-    .filter((record) => record.oldoSupport.length)
-    .map((record) => `${formatShortDate(record.date)} (${record.weekday}) - ${record.oldoSupport.join(", ")}`);
-  const notes = records.flatMap((record) =>
-    record.otherNotes.map((note) => `${formatShortDate(record.date)} - ${note}`),
-  );
 
   return `[${formatReportPeriod(startDate, endDate)} 항동PDI센터]
 
-금주 입고 차량 - ${manual.inboundCount || "(수기 입력)"}
+금주 입고 완료 - ${current.inbound}대${comparisonText(current.inbound, previous.inbound, hasPrevious, "대")}
 
 금주 탁송인계 완료
 출고완료 - ${current.handover}대${comparisonText(current.handover, previous.handover, hasPrevious, "대")}
-출고 대기 차량 - ${manual.waitingCount || "(수기 입력)"}
+출고 대기 차량 - (수기 입력)
 
 금주 출고준비 완료
 출고준비완료 - ${current.ready}대${comparisonText(current.ready, previous.ready, hasPrevious, "대")}
 
 출고 중 특이사항 발생 건 - ${current.special}대${comparisonText(current.special, previous.special, hasPrevious, "건")}
-요철 - ${manual.potholeCount || "(수기 입력)"}
-정비 - ${manual.maintenanceCount || "(수기 입력)"}
-스마트키 불량 - ${manual.smartKeyCount || "(수기 입력)"}
-배터리 교체 - ${manual.batteryCount || "(수기 입력)"}
-기타 - ${manual.otherIssueCount || "(수기 입력)"}
+
+요철 - (수기 입력)
+정비 - (수기 입력)
+스마트키 불량 - (수기 입력)
+배터리 교체 - (수기 입력)
+기타 - (수기 입력)
 
 루틴 업무
-${routineTasks.length ? routineTasks.map((item) => `- ${item}`).join("\n") : "없음"}
+(수기 입력)
 
 그 외
-${[notes.join("\n"), manual.otherWork].filter(Boolean).join("\n") || "(수기 입력)"}
+(수기 입력)
 
 개선사항 및 논의내용
-${manual.discussion || "(수기 입력)"}
+(수기 입력)
 
 팀원 특이사항
-${leaveItems.join("\n") || "없음"}
-
-항동 - PDI 인사
-8 TO 16 출근자
-${shiftLines.join("\n") || "없음"}
-
-올도 PDI 지원
-${oldoLines.join("\n") || "없음"}
-
-공가/휴가
-${leaveItems.join("\n") || "없음"}
+(수기 입력)
 
 [다음 주 예정]
-${manual.nextWeek || "(수기 입력)"}`;
+(수기 입력)`;
 }
 
 export function filterRecordsByPeriod(records: DailyWorkLog[], startDate: string, endDate: string) {
@@ -291,11 +218,12 @@ export function formatDateTime(value: string) {
 function summarizeRecords(records: DailyWorkLog[]) {
   return records.reduce(
     (summary, record) => ({
+      inbound: summary.inbound + (Number(record.dailyInboundCount) || 0),
       ready: summary.ready + record.dailyReadyCount,
       special: summary.special + record.specialReadyCount,
       handover: summary.handover + record.dailyTransportHandOverCount,
     }),
-    { ready: 0, special: 0, handover: 0 },
+    { inbound: 0, ready: 0, special: 0, handover: 0 },
   );
 }
 
@@ -320,10 +248,6 @@ function splitPeople(value: string) {
 
 function unique(values: string[]) {
   return Array.from(new Set(values.map((value) => value.trim()).filter(Boolean)));
-}
-
-function formatPeopleSection(title: string, values: string[]) {
-  return `• ${title}\n  ○ ${values.length ? values.join(", ") : "없음"}`;
 }
 
 function formatShortDate(date: string) {

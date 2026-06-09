@@ -14,7 +14,7 @@ export default function OperationsPage() {
           <div>
             <span className="platform-kicker">DAILY LOG / WEEKLY REPORT</span>
             <h1>일일 업무일지 · 주간 리포트</h1>
-            <p>슬랙 일일 업무일지를 기록하고 금요일~목요일 기준 주간 회의 자료로 취합합니다.</p>
+            <p>슬랙 일일 업무일지를 그대로 등록하고 금요일~목요일 핵심 수치를 주간 회의 자료로 취합합니다.</p>
           </div>
         </section>
         <DailyWorkLogClient />

@@ -7414,6 +7414,15 @@ textarea {
   grid-column: 1 / -1;
 }
 
+.daily-log-workspace.is-registration-flow .daily-log-history-card {
+  grid-column: auto;
+  align-self: start;
+}
+
+.daily-log-workspace.is-registration-flow .daily-log-register-card {
+  align-self: start;
+}
+
 .daily-log-section-heading {
   display: flex;
   align-items: flex-start;
@@ -7582,6 +7591,40 @@ textarea {
   resize: vertical;
 }
 
+.weekly-metric-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.weekly-metric-grid article {
+  display: grid;
+  gap: 8px;
+  padding: 15px;
+  background: linear-gradient(145deg, rgba(8, 145, 178, 0.09), rgba(76, 29, 149, 0.07));
+  border: 1px solid rgba(34, 211, 238, 0.17);
+  border-radius: 13px;
+}
+
+.weekly-metric-grid span {
+  color: #94a3b8;
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.weekly-metric-grid strong {
+  color: #f8fafc;
+  font-family: var(--font-console);
+  font-size: 27px;
+}
+
+.weekly-metric-grid small {
+  margin-left: 3px;
+  color: #67e8f9;
+  font-size: 12px;
+}
+
 .daily-log-history-list {
   display: grid;
   gap: 8px;
@@ -7681,6 +7724,10 @@ textarea {
   .weekly-manual-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .weekly-metric-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 700px) {
@@ -7707,6 +7754,10 @@ textarea {
 
   .daily-log-actions .platform-button {
     flex: 1 1 auto;
+  }
+
+  .weekly-metric-grid {
+    grid-template-columns: 1fr;
   }
 }
 

@@ -73,7 +73,7 @@ async function main() {
 
   const initialPath = await evaluate("location.pathname");
   const launcherText = await evaluate(
-    'document.querySelector(".launcher-start-button")?.textContent.includes("START") && document.body.innerText.includes("v1.9.0")',
+    'document.querySelector(".launcher-start-button")?.textContent.includes("START") && document.body.innerText.includes("v1.9.1")',
   );
   const localBackgroundBridge = await evaluate(
     'Boolean(window.pdiBackgrounds && window.pdiBackgrounds.list && window.pdiBackgrounds.add && window.pdiBackgrounds.remove)',
@@ -128,12 +128,15 @@ async function main() {
   await delay(900);
   const operationsPath = await evaluate("location.pathname");
   const operationsReady = await evaluate(
-    'document.body.innerText.includes("일일 업무일지 · 주간 리포트") && document.body.innerText.includes("주간 리포트 생성") && document.body.innerText.includes("JSON 내보내기")',
+    'document.body.innerText.includes("일일 업무일지 · 주간 리포트") && document.body.innerText.includes("일일 업무일지 등록") && document.body.innerText.includes("주간 핵심 수치 취합") && document.body.innerText.includes("JSON 내보내기")',
   );
+  const originalDailyRecords = await evaluate('localStorage.getItem("pdi-daily-work-log-v1")');
+  await evaluate('localStorage.removeItem("pdi-daily-work-log-v1")');
   await evaluate(`(() => {
     const textarea = document.querySelector(".daily-log-raw");
     const setter = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value").set;
     setter.call(textarea, \`[06/09 (화) 항동 - PDI 일일 업무일지]
+• 금일 입고 완료 - 12대
 • 차량출고준비 - 14대
   (준비 중, 특이사항 차량 총 3대)
 • 금일 탁송 인계 - 11대
@@ -149,19 +152,17 @@ async function main() {
     textarea.dispatchEvent(new Event("input", { bubbles: true }));
   })()`);
   await evaluate(
-    'Array.from(document.querySelectorAll("button")).find((button) => button.textContent.includes("원문 분석"))?.click()',
+    'Array.from(document.querySelectorAll("button")).find((button) => button.textContent.includes("일일 업무일지 등록"))?.click()',
   );
-  await delay(250);
-  const operationsParsed = await evaluate(`(() => {
-    const fields = Array.from(document.querySelectorAll(".daily-log-field"));
-    const valueFor = (label) => fields.find((field) => field.querySelector("span")?.textContent === label)?.querySelector("input, textarea")?.value;
-    return valueFor("차량출고준비") === "14"
-      && valueFor("특이사항 차량") === "3"
-      && valueFor("탁송 인계") === "11"
-      && valueFor("8TO16 출근자").includes("poty")
-      && valueFor("올도 PDI 지원").includes("wood")
-      && valueFor("연차").includes("musk");
-  })()`);
+  await delay(350);
+  const operationsParsed = await evaluate(
+    'document.body.innerText.includes("입고 12 · 출고 11 · 출고준비 14 · 특이사항 3") && JSON.parse(localStorage.getItem("pdi-daily-work-log-v1") || "[]").some((record) => record.dailyInboundCount === 12 && record.dailyReadyCount === 14 && record.dailyTransportHandOverCount === 11 && record.specialReadyCount === 3)',
+  );
+  await evaluate(
+    originalDailyRecords === null
+      ? 'localStorage.removeItem("pdi-daily-work-log-v1")'
+      : `localStorage.setItem("pdi-daily-work-log-v1", ${JSON.stringify(originalDailyRecords)})`,
+  );
 
   await send("Page.navigate", { url: "http://127.0.0.1:3187/transport-tools/issue-helper" });
   await delay(900);

@@ -100,6 +100,11 @@ export const updates: UpdateGroup[] = [
     items: [
       {
         version: APP_VERSION,
+        title: "업무일지 등록 흐름 간소화",
+        description: "일일 원문 등록·보관과 입고·출고·출고준비·특이사항 주간 합산 중심으로 화면을 정리했습니다.",
+      },
+      {
+        version: "1.9.0",
         title: "일일 업무일지 및 주간 리포트",
         description: "슬랙 업무일지 분석, 일일 기록 저장, 전주 대비 주간 회의 리포트 생성을 추가했습니다.",
       },
