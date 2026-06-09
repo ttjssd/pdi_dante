@@ -73,7 +73,7 @@ async function main() {
 
   const initialPath = await evaluate("location.pathname");
   const launcherText = await evaluate(
-    'document.querySelector(".launcher-start-button")?.textContent.includes("START") && document.body.innerText.includes("v1.9.5")',
+    'document.querySelector(".launcher-start-button")?.textContent.includes("START") && document.body.innerText.includes("v1.9.6")',
   );
   const localBackgroundBridge = await evaluate(
     'Boolean(window.pdiBackgrounds && window.pdiBackgrounds.list && window.pdiBackgrounds.add && window.pdiBackgrounds.remove)',
@@ -123,7 +123,12 @@ async function main() {
   await delay(700);
   const contactsPath = await evaluate("location.pathname");
   const contactsReady = await evaluate(
-    'document.body.innerText.includes("연락처 모음") && document.body.innerText.includes("협력 업체 연락처") && document.body.innerText.includes("판매 매니저 연락처") && document.body.innerText.includes("연락처 등록") && document.body.innerText.includes("연락처 한 번에 붙여넣기") && document.body.innerText.includes("GitHub와 설치파일에는 실제 연락처가 포함되지 않습니다.")',
+    'document.body.innerText.includes("연락처 모음") && document.body.innerText.includes("협력 업체 연락처") && document.body.innerText.includes("판매 매니저 연락처") && document.body.innerText.includes("연락처 등록 / 관리") && !document.querySelector(".hangdong-contact-management").open',
+  );
+  await evaluate('document.querySelector(".hangdong-contact-management").open = true');
+  await delay(100);
+  const contactManagementReady = await evaluate(
+    'document.body.innerText.includes("연락처 한 번에 붙여넣기") && document.body.innerText.includes("GitHub와 설치파일에는 실제 연락처가 포함되지 않습니다.")',
   );
   const originalContacts = await evaluate('localStorage.getItem("pdi-hangdong-contacts-v1")');
   await evaluate('localStorage.removeItem("pdi-hangdong-contacts-v1")');
@@ -243,6 +248,7 @@ async function main() {
     hangdongReady,
     contactsPath,
     contactsReady,
+    contactManagementReady,
     localContactsReady,
     bulkContactsReady,
     settingsPath,

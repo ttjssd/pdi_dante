@@ -109,6 +109,11 @@ export const updates: UpdateGroup[] = [
     items: [
       {
         version: APP_VERSION,
+        title: "연락처 화면 사용성 개선",
+        description: "등록된 연락처를 상단에 우선 표시하고 등록·관리 기능을 접이식 영역으로 정리했습니다.",
+      },
+      {
+        version: "1.9.5",
         title: "스마트 연락처 등록 및 업데이트 안정화",
         description: "연락처 목록 일괄 분석 등록과 런처 내부 다운로드·수동 재시작 업데이트 흐름을 강화했습니다.",
       },

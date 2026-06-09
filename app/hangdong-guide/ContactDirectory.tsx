@@ -29,6 +29,7 @@ export default function ContactDirectory() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [bulkText, setBulkText] = useState("");
   const [bulkType, setBulkType] = useState<BulkContactType>("auto");
+  const [editorOpen, setEditorOpen] = useState(false);
   const [message, setMessage] = useState("");
   const importRef = useRef<HTMLInputElement>(null);
 
@@ -113,6 +114,7 @@ export default function ContactDirectory() {
       note: contact.note,
     });
     setEditingId(contact.id);
+    setEditorOpen(true);
     setMessage("선택한 연락처를 수정할 수 있습니다.");
   };
 
@@ -164,87 +166,98 @@ export default function ContactDirectory() {
         <p>연락처는 현재 PC 브라우저 저장소에만 보관됩니다.</p>
       </div>
 
-      <div className="hangdong-contact-toolbar">
-        <div>
-          <strong>LOCAL CONTACT STORAGE</strong>
-          <span>GitHub와 설치파일에는 실제 연락처가 포함되지 않습니다.</span>
-        </div>
-        <div>
-          <button type="button" onClick={() => importRef.current?.click()}>JSON 가져오기</button>
-          <button type="button" onClick={exportContacts} disabled={!contacts.length}>JSON 내보내기</button>
-          <input ref={importRef} type="file" accept="application/json,.json" onChange={importContacts} hidden />
-        </div>
-      </div>
-
-      <div className="hangdong-contact-bulk">
-        <div className="hangdong-contact-bulk-heading">
-          <div>
-            <strong>SMART PASTE</strong>
-            <h3>연락처 한 번에 붙여넣기</h3>
-            <p>번호 목록, 마크다운, `이름 (아이디) : 연락처` 형식을 자동으로 정리합니다.</p>
-          </div>
-          <label>
-            등록 구분
-            <select value={bulkType} onChange={(event) => setBulkType(event.target.value as BulkContactType)}>
-              <option value="auto">자동 구분</option>
-              <option value="partner">협력 업체</option>
-              <option value="manager">판매 매니저</option>
-            </select>
-          </label>
-        </div>
-        <textarea
-          value={bulkText}
-          onChange={(event) => setBulkText(event.target.value)}
-          placeholder={"예:\n1. 루이스 (lewis) : 010-0000-0000\n2. 카플레이 : 010-0000-0000\n   - 블랙박스"}
-        />
-        <div>
-          <small>{bulkText.trim() ? `${parseBulkContacts(bulkText, bulkType).length}개 연락처 인식` : "붙여넣은 내용은 이 PC에서만 처리됩니다."}</small>
-          <button type="button" onClick={registerBulkContacts}>분석 후 일괄 등록</button>
-        </div>
-      </div>
-
-      <div className="hangdong-contact-editor">
-        <label>
-          구분
-          <select value={draft.type} onChange={(event) => setDraft({ ...draft, type: event.target.value as ContactType })}>
-            <option value="partner">협력 업체</option>
-            <option value="manager">판매 매니저</option>
-          </select>
-        </label>
-        <label>
-          이름
-          <input value={draft.name} onChange={(event) => setDraft({ ...draft, name: event.target.value })} placeholder="업체명 또는 매니저명" />
-        </label>
-        <label>
-          연락처
-          <input value={draft.phone} onChange={(event) => setDraft({ ...draft, phone: event.target.value })} placeholder="전화번호 또는 연락 방법" />
-        </label>
-        <label>
-          담당 업무 / 멘션
-          <input value={draft.label} onChange={(event) => setDraft({ ...draft, label: event.target.value })} placeholder="예: 유리 복원 또는 @아이디" />
-        </label>
-        <label className="contact-note-field">
-          참고사항
-          <textarea value={draft.note} onChange={(event) => setDraft({ ...draft, note: event.target.value })} placeholder="결제, 요청 절차 등 필요한 메모" />
-        </label>
-        <div className="hangdong-contact-editor-actions">
-          {editingId && (
-            <button type="button" className="contact-ghost-button" onClick={() => { setDraft(emptyDraft); setEditingId(null); }}>
-              수정 취소
-            </button>
-          )}
-          <button type="button" className="contact-save-button" onClick={submit}>
-            {editingId ? "수정 저장" : "연락처 등록"}
-          </button>
-        </div>
-      </div>
-
       {message && <p className="hangdong-contact-message" role="status">{message}</p>}
 
       <div className="hangdong-contact-layout">
         <ContactPanel title="협력 업체 연락처" label="PARTNER NETWORK" contacts={grouped.partner} onEdit={editContact} onDelete={deleteContact} />
         <ContactPanel title="판매 매니저 연락처" label="SALES MANAGERS" contacts={grouped.manager} onEdit={editContact} onDelete={deleteContact} />
       </div>
+
+      <details className="hangdong-contact-management" open={editorOpen} onToggle={(event) => setEditorOpen(event.currentTarget.open)}>
+        <summary>
+          <div>
+            <strong>연락처 등록 / 관리</strong>
+            <span>스마트 붙여넣기, 개별 등록, JSON 백업</span>
+          </div>
+          <b>{editorOpen ? "접기" : "열기"}</b>
+        </summary>
+        <div className="hangdong-contact-management-body">
+          <div className="hangdong-contact-toolbar">
+            <div>
+              <strong>LOCAL CONTACT STORAGE</strong>
+              <span>GitHub와 설치파일에는 실제 연락처가 포함되지 않습니다.</span>
+            </div>
+            <div>
+              <button type="button" onClick={() => importRef.current?.click()}>JSON 가져오기</button>
+              <button type="button" onClick={exportContacts} disabled={!contacts.length}>JSON 내보내기</button>
+              <input ref={importRef} type="file" accept="application/json,.json" onChange={importContacts} hidden />
+            </div>
+          </div>
+
+          <div className="hangdong-contact-bulk">
+            <div className="hangdong-contact-bulk-heading">
+              <div>
+                <strong>SMART PASTE</strong>
+                <h3>연락처 한 번에 붙여넣기</h3>
+                <p>번호 목록, 마크다운, `이름 (아이디) : 연락처` 형식을 자동으로 정리합니다.</p>
+              </div>
+              <label>
+                등록 구분
+                <select value={bulkType} onChange={(event) => setBulkType(event.target.value as BulkContactType)}>
+                  <option value="auto">자동 구분</option>
+                  <option value="partner">협력 업체</option>
+                  <option value="manager">판매 매니저</option>
+                </select>
+              </label>
+            </div>
+            <textarea
+              value={bulkText}
+              onChange={(event) => setBulkText(event.target.value)}
+              placeholder={"예:\n1. 루이스 (lewis) : 010-0000-0000\n2. 카플레이 : 010-0000-0000\n   - 블랙박스"}
+            />
+            <div>
+              <small>{bulkText.trim() ? `${parseBulkContacts(bulkText, bulkType).length}개 연락처 인식` : "붙여넣은 내용은 이 PC에서만 처리됩니다."}</small>
+              <button type="button" onClick={registerBulkContacts}>분석 후 일괄 등록</button>
+            </div>
+          </div>
+
+          <div className="hangdong-contact-editor">
+            <label>
+              구분
+              <select value={draft.type} onChange={(event) => setDraft({ ...draft, type: event.target.value as ContactType })}>
+                <option value="partner">협력 업체</option>
+                <option value="manager">판매 매니저</option>
+              </select>
+            </label>
+            <label>
+              이름
+              <input value={draft.name} onChange={(event) => setDraft({ ...draft, name: event.target.value })} placeholder="업체명 또는 매니저명" />
+            </label>
+            <label>
+              연락처
+              <input value={draft.phone} onChange={(event) => setDraft({ ...draft, phone: event.target.value })} placeholder="전화번호 또는 연락 방법" />
+            </label>
+            <label>
+              담당 업무 / 멘션
+              <input value={draft.label} onChange={(event) => setDraft({ ...draft, label: event.target.value })} placeholder="예: 유리 복원 또는 @아이디" />
+            </label>
+            <label className="contact-note-field">
+              참고사항
+              <textarea value={draft.note} onChange={(event) => setDraft({ ...draft, note: event.target.value })} placeholder="결제, 요청 절차 등 필요한 메모" />
+            </label>
+            <div className="hangdong-contact-editor-actions">
+              {editingId && (
+                <button type="button" className="contact-ghost-button" onClick={() => { setDraft(emptyDraft); setEditingId(null); }}>
+                  수정 취소
+                </button>
+              )}
+              <button type="button" className="contact-save-button" onClick={submit}>
+                {editingId ? "수정 저장" : "연락처 등록"}
+              </button>
+            </div>
+          </div>
+        </div>
+      </details>
       <p className="hangdong-contact-note">업무용 노트북에서는 최초 한 번 직접 등록하거나 JSON 파일을 가져와 사용해 주세요.</p>
     </section>
   );
