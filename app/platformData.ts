@@ -100,6 +100,11 @@ export const updates: UpdateGroup[] = [
     items: [
       {
         version: APP_VERSION,
+        title: "항동센터 연락처 및 업데이트 개선",
+        description: "협력업체·판매 매니저 연락처를 추가하고 업데이트가 예고 없이 설치되지 않도록 적용 흐름을 정리했습니다.",
+      },
+      {
+        version: "1.9.2",
         title: "주간 기록 누락 감지",
         description: "금~목 일일 기록의 미등록, 중복, 핵심 수치 추출 누락을 날짜별로 확인할 수 있게 했습니다.",
       },

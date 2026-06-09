@@ -73,7 +73,7 @@ async function main() {
 
   const initialPath = await evaluate("location.pathname");
   const launcherText = await evaluate(
-    'document.querySelector(".launcher-start-button")?.textContent.includes("START") && document.body.innerText.includes("v1.9.2")',
+    'document.querySelector(".launcher-start-button")?.textContent.includes("START") && document.body.innerText.includes("v1.9.3")',
   );
   const localBackgroundBridge = await evaluate(
     'Boolean(window.pdiBackgrounds && window.pdiBackgrounds.list && window.pdiBackgrounds.add && window.pdiBackgrounds.remove)',
@@ -114,7 +114,27 @@ async function main() {
   await delay(900);
   const hangdongPath = await evaluate("location.pathname");
   const hangdongReady = await evaluate(
-    'document.body.innerText.includes("항동센터 가이드") && document.body.innerText.includes("입고 차량 중 상품화 누락 후 복귀차량")',
+    'document.body.innerText.includes("항동센터 가이드") && document.body.innerText.includes("입고 차량 중 상품화 누락 후 복귀차량") && document.body.innerText.includes("협력 업체 연락처") && document.body.innerText.includes("판매 매니저 연락처") && document.body.innerText.includes("연락처 등록") && document.body.innerText.includes("GitHub와 설치파일에는 실제 연락처가 포함되지 않습니다.")',
+  );
+  const originalContacts = await evaluate('localStorage.getItem("pdi-hangdong-contacts-v1")');
+  await evaluate('localStorage.removeItem("pdi-hangdong-contacts-v1")');
+  await evaluate(`(() => {
+    const inputs = document.querySelectorAll(".hangdong-contact-editor input");
+    const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value").set;
+    setter.call(inputs[0], "테스트 업체");
+    inputs[0].dispatchEvent(new Event("input", { bubbles: true }));
+    setter.call(inputs[1], "000-0000-0000");
+    inputs[1].dispatchEvent(new Event("input", { bubbles: true }));
+    Array.from(document.querySelectorAll("button")).find((button) => button.textContent.includes("연락처 등록"))?.click();
+  })()`);
+  await delay(200);
+  const localContactsReady = await evaluate(
+    'document.body.innerText.includes("테스트 업체") && JSON.parse(localStorage.getItem("pdi-hangdong-contacts-v1") || "[]").some((contact) => contact.name === "테스트 업체" && contact.phone === "000-0000-0000")',
+  );
+  await evaluate(
+    originalContacts === null
+      ? 'localStorage.removeItem("pdi-hangdong-contacts-v1")'
+      : `localStorage.setItem("pdi-hangdong-contacts-v1", ${JSON.stringify(originalContacts)})`,
   );
 
   await send("Page.navigate", { url: "http://127.0.0.1:3187/settings" });
@@ -200,6 +220,7 @@ async function main() {
     hasOperationsCard,
     hangdongPath,
     hangdongReady,
+    localContactsReady,
     settingsPath,
     settingsReady,
     operationsPath,

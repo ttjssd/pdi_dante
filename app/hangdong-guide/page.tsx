@@ -1,4 +1,5 @@
 import { BackButton, Breadcrumb, ModuleCard, PlatformHeader } from "../components/platform";
+import ContactDirectory from "./ContactDirectory";
 
 const modules = [
   {
@@ -37,6 +38,8 @@ export default function HangdongGuidePage() {
             {modules.map((module, index) => <ModuleCard key={module.title} {...module} index={index} />)}
           </div>
         </section>
+
+        <ContactDirectory />
       </div>
       <footer className="platform-footer">
         <strong>PDI BACKOFFICE PLATFORM</strong>

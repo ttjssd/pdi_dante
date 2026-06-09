@@ -105,7 +105,7 @@ process.on("unhandledRejection", (reason) => {
 try {
   autoUpdater = require("electron-updater").autoUpdater;
   autoUpdater.autoDownload = true;
-  autoUpdater.autoInstallOnAppQuit = true;
+  autoUpdater.autoInstallOnAppQuit = false;
 } catch (error) {
   writeDebugLog(`electron-updater load failed: ${error.message}`);
   autoUpdater = null;
@@ -259,7 +259,7 @@ ipcMain.handle("window:get-mode", () => getWindowMode());
 
 ipcMain.handle("updater:restart", () => {
   if (!autoUpdater) return false;
-  autoUpdater.quitAndInstall(false, true);
+  autoUpdater.quitAndInstall(true, true);
   return true;
 });
 
