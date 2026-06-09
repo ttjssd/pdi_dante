@@ -73,10 +73,13 @@ async function main() {
 
   const initialPath = await evaluate("location.pathname");
   const launcherText = await evaluate(
-    'document.querySelector(".launcher-start-button")?.textContent.includes("START") && document.body.innerText.includes("v1.9.4")',
+    'document.querySelector(".launcher-start-button")?.textContent.includes("START") && document.body.innerText.includes("v1.9.5")',
   );
   const localBackgroundBridge = await evaluate(
     'Boolean(window.pdiBackgrounds && window.pdiBackgrounds.list && window.pdiBackgrounds.add && window.pdiBackgrounds.remove)',
+  );
+  const updaterBridgeReady = await evaluate(
+    'Boolean(window.pdiUpdater && window.pdiUpdater.onStatus && window.pdiUpdater.restartToUpdate)',
   );
   const localBackgroundsReadable = await evaluate(
     'window.pdiBackgrounds.list().then((items) => Array.isArray(items) && items.every((item) => item.url.startsWith("pdi-media://backgrounds/")))',
@@ -120,7 +123,7 @@ async function main() {
   await delay(700);
   const contactsPath = await evaluate("location.pathname");
   const contactsReady = await evaluate(
-    'document.body.innerText.includes("연락처 모음") && document.body.innerText.includes("협력 업체 연락처") && document.body.innerText.includes("판매 매니저 연락처") && document.body.innerText.includes("연락처 등록") && document.body.innerText.includes("GitHub와 설치파일에는 실제 연락처가 포함되지 않습니다.")',
+    'document.body.innerText.includes("연락처 모음") && document.body.innerText.includes("협력 업체 연락처") && document.body.innerText.includes("판매 매니저 연락처") && document.body.innerText.includes("연락처 등록") && document.body.innerText.includes("연락처 한 번에 붙여넣기") && document.body.innerText.includes("GitHub와 설치파일에는 실제 연락처가 포함되지 않습니다.")',
   );
   const originalContacts = await evaluate('localStorage.getItem("pdi-hangdong-contacts-v1")');
   await evaluate('localStorage.removeItem("pdi-hangdong-contacts-v1")');
@@ -136,6 +139,17 @@ async function main() {
   await delay(200);
   const localContactsReady = await evaluate(
     'document.body.innerText.includes("테스트 업체") && JSON.parse(localStorage.getItem("pdi-hangdong-contacts-v1") || "[]").some((contact) => contact.name === "테스트 업체" && contact.phone === "000-0000-0000")',
+  );
+  await evaluate(`(() => {
+    const textarea = document.querySelector(".hangdong-contact-bulk textarea");
+    const setter = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value").set;
+    setter.call(textarea, "1. 루이스 (lewis) : 010-1111-2222\\n2. 테스트 유리 : 010-3333-4444\\n   - 유리 복원");
+    textarea.dispatchEvent(new Event("input", { bubbles: true }));
+    Array.from(document.querySelectorAll("button")).find((button) => button.textContent.includes("분석 후 일괄 등록"))?.click();
+  })()`);
+  await delay(200);
+  const bulkContactsReady = await evaluate(
+    'JSON.parse(localStorage.getItem("pdi-hangdong-contacts-v1") || "[]").some((contact) => contact.name === "루이스" && contact.label === "@lewis") && JSON.parse(localStorage.getItem("pdi-hangdong-contacts-v1") || "[]").some((contact) => contact.name === "테스트 유리" && contact.note.includes("유리 복원"))',
   );
   await evaluate(
     originalContacts === null
@@ -213,6 +227,7 @@ async function main() {
   const result = {
     initialPath,
     launcherText,
+    updaterBridgeReady,
     localBackgroundBridge,
     localBackgroundsReadable,
     localBackgroundMediaLoads,
@@ -229,6 +244,7 @@ async function main() {
     contactsPath,
     contactsReady,
     localContactsReady,
+    bulkContactsReady,
     settingsPath,
     settingsReady,
     operationsPath,

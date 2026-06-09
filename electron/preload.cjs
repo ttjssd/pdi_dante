@@ -4,6 +4,7 @@ contextBridge.exposeInMainWorld("pdiUpdater", {
   onStatus(callback) {
     const listener = (_event, payload) => callback(payload);
     ipcRenderer.on("updater:status", listener);
+    ipcRenderer.invoke("updater:get-status").then(callback);
     return () => ipcRenderer.removeListener("updater:status", listener);
   },
   restartToUpdate() {

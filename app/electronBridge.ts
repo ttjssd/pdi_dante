@@ -10,6 +10,7 @@ export type UpdaterState =
   | "not-available"
   | "downloading"
   | "downloaded"
+  | "applying"
   | "error"
   | "disabled";
 

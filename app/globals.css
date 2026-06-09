@@ -5051,7 +5051,7 @@ body::after {
   display: grid;
   flex: 1;
   grid-template-columns: minmax(300px, 420px) minmax(360px, 1fr) minmax(300px, 390px);
-  align-items: end;
+  align-items: flex-end;
   gap: 22px;
   padding: 42px 0 34px;
 }
@@ -6015,11 +6015,107 @@ body {
 }
 
 .hangdong-contact-toolbar,
-.hangdong-contact-editor {
+.hangdong-contact-editor,
+.hangdong-contact-bulk {
   margin-bottom: 14px;
   background: rgba(8, 13, 29, 0.82);
   border: 1px solid rgba(34, 211, 238, 0.16);
   border-radius: 16px;
+}
+
+.hangdong-contact-bulk {
+  padding: 16px;
+}
+
+.hangdong-contact-bulk-heading {
+  display: flex;
+  gap: 18px;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.hangdong-contact-bulk-heading strong {
+  color: #67e8f9;
+  font-family: var(--font-console);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+}
+
+.hangdong-contact-bulk-heading h3 {
+  margin: 4px 0 0;
+  color: #f1f5f9;
+  font-size: 18px;
+}
+
+.hangdong-contact-bulk-heading p {
+  margin: 5px 0 0;
+  color: #94a3b8;
+  font-size: 12px;
+}
+
+.hangdong-contact-bulk-heading label {
+  display: grid;
+  min-width: 150px;
+  gap: 6px;
+  color: #94a3b8;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.hangdong-contact-bulk select,
+.hangdong-contact-bulk textarea {
+  color: #e2e8f0;
+  background: rgba(3, 7, 18, 0.72);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 10px;
+  font: inherit;
+  outline: none;
+}
+
+.hangdong-contact-bulk select {
+  min-height: 38px;
+  padding: 0 10px;
+}
+
+.hangdong-contact-bulk textarea {
+  width: 100%;
+  min-height: 130px;
+  padding: 12px;
+  line-height: 1.65;
+  resize: vertical;
+}
+
+.hangdong-contact-bulk textarea:focus,
+.hangdong-contact-bulk select:focus {
+  border-color: rgba(34, 211, 238, 0.6);
+  box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.08);
+}
+
+.hangdong-contact-bulk > div:last-child {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+
+.hangdong-contact-bulk > div:last-child small {
+  color: #7dd3fc;
+  font-size: 11px;
+}
+
+.hangdong-contact-bulk > div:last-child button {
+  min-height: 38px;
+  padding: 0 14px;
+  color: #07111f;
+  background: linear-gradient(135deg, #67e8f9, #818cf8);
+  border: 0;
+  border-radius: 10px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
 }
 
 .hangdong-contact-toolbar {
@@ -6354,6 +6450,12 @@ body {
 }
 
 @media (max-width: 560px) {
+  .hangdong-contact-bulk-heading,
+  .hangdong-contact-bulk > div:last-child {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
   .hangdong-contact-toolbar {
     align-items: stretch;
     flex-direction: column;

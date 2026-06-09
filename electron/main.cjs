@@ -12,6 +12,7 @@ const APP_TITLE = "PDI Backoffice";
 let nextProcess;
 let mainWindow;
 let autoUpdater;
+let updateStatus = { state: "idle", message: "업데이트 상태 대기 중" };
 
 protocol.registerSchemesAsPrivileged([
   {
@@ -104,7 +105,7 @@ process.on("unhandledRejection", (reason) => {
 
 try {
   autoUpdater = require("electron-updater").autoUpdater;
-  autoUpdater.autoDownload = true;
+  autoUpdater.autoDownload = false;
   autoUpdater.autoInstallOnAppQuit = false;
 } catch (error) {
   writeDebugLog(`electron-updater load failed: ${error.message}`);
@@ -112,8 +113,9 @@ try {
 }
 
 function sendUpdateStatus(payload) {
+  updateStatus = { ...updateStatus, ...payload };
   if (!mainWindow || mainWindow.isDestroyed()) return;
-  mainWindow.webContents.send("updater:status", payload);
+  mainWindow.webContents.send("updater:status", updateStatus);
 }
 
 
@@ -132,6 +134,9 @@ function setupAutoUpdater() {
   });
   autoUpdater.on("update-available", (info) => {
     sendUpdateStatus({ state: "available", version: info.version, message: "새 업데이트 발견" });
+    autoUpdater.downloadUpdate().catch((error) => {
+      sendUpdateStatus({ state: "error", message: "업데이트 다운로드 실패", detail: error.message });
+    });
   });
   autoUpdater.on("update-not-available", () => {
     sendUpdateStatus({ state: "not-available", message: "최신 버전입니다" });
@@ -257,8 +262,13 @@ ipcMain.handle("window:toggle-maximize", () => {
 
 ipcMain.handle("window:get-mode", () => getWindowMode());
 
+ipcMain.handle("updater:get-status", () => updateStatus);
+
 ipcMain.handle("updater:restart", () => {
-  if (!autoUpdater) return false;
+  if (!autoUpdater || updateStatus.state !== "downloaded") return false;
+  sendUpdateStatus({ state: "applying", message: "업데이트 적용 중" });
+  writeDebugLog(`silent update requested: ${updateStatus.version || "unknown"}`);
+  if (mainWindow && !mainWindow.isDestroyed()) mainWindow.hide();
   autoUpdater.quitAndInstall(true, true);
   return true;
 });

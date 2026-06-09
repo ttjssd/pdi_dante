@@ -105,10 +105,20 @@ export const toolSearchItems = [
 
 export const updates: UpdateGroup[] = [
   {
-    date: "06/09",
+    date: "06/10",
     items: [
       {
         version: APP_VERSION,
+        title: "스마트 연락처 등록 및 업데이트 안정화",
+        description: "연락처 목록 일괄 분석 등록과 런처 내부 다운로드·수동 재시작 업데이트 흐름을 강화했습니다.",
+      },
+    ],
+  },
+  {
+    date: "06/09",
+    items: [
+      {
+        version: "1.9.4",
         title: "항동센터 연락처 가이드 분리",
         description: "연락처 모음을 항동센터 가이드의 두 번째 독립 기능으로 분리했습니다.",
       },

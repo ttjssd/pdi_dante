@@ -249,6 +249,11 @@ export default function LauncherClient() {
               RESTART TO UPDATE
             </button>
           )}
+          {updateStatus.state === "applying" && (
+            <button className="launcher-restart-button" type="button" disabled>
+              APPLYING UPDATE...
+            </button>
+          )}
         </div>
         <button className="launcher-start-button" type="button" onClick={startConsole} disabled={isLoading || entryLoading}>
           {isLoading ? "LOADING..." : "START"} <span>→</span>

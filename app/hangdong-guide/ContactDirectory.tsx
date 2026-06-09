@@ -3,6 +3,7 @@
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 
 type ContactType = "partner" | "manager";
+type BulkContactType = ContactType | "auto";
 
 type LocalContact = {
   id: string;
@@ -26,6 +27,8 @@ export default function ContactDirectory() {
   const [contacts, setContacts] = useState<LocalContact[]>([]);
   const [draft, setDraft] = useState(emptyDraft);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [bulkText, setBulkText] = useState("");
+  const [bulkType, setBulkType] = useState<BulkContactType>("auto");
   const [message, setMessage] = useState("");
   const importRef = useRef<HTMLInputElement>(null);
 
@@ -77,6 +80,28 @@ export default function ContactDirectory() {
 
     setDraft(emptyDraft);
     setEditingId(null);
+  };
+
+  const registerBulkContacts = () => {
+    const parsed = parseBulkContacts(bulkText, bulkType);
+    if (!parsed.length) {
+      setMessage("인식할 수 있는 연락처가 없습니다. 이름과 연락처를 줄 단위로 붙여넣어 주세요.");
+      return;
+    }
+
+    const existingKeys = new Set(contacts.map((contact) => contactKey(contact)));
+    const additions = parsed
+      .filter((contact) => !existingKeys.has(contactKey(contact)))
+      .map((contact) => ({ ...contact, id: crypto.randomUUID() }));
+
+    if (!additions.length) {
+      setMessage("모두 이미 등록된 연락처입니다.");
+      return;
+    }
+
+    saveContacts([...contacts, ...additions]);
+    setBulkText("");
+    setMessage(`${additions.length}개 연락처를 분석해 이 PC에 등록했습니다.`);
   };
 
   const editContact = (contact: LocalContact) => {
@@ -148,6 +173,33 @@ export default function ContactDirectory() {
           <button type="button" onClick={() => importRef.current?.click()}>JSON 가져오기</button>
           <button type="button" onClick={exportContacts} disabled={!contacts.length}>JSON 내보내기</button>
           <input ref={importRef} type="file" accept="application/json,.json" onChange={importContacts} hidden />
+        </div>
+      </div>
+
+      <div className="hangdong-contact-bulk">
+        <div className="hangdong-contact-bulk-heading">
+          <div>
+            <strong>SMART PASTE</strong>
+            <h3>연락처 한 번에 붙여넣기</h3>
+            <p>번호 목록, 마크다운, `이름 (아이디) : 연락처` 형식을 자동으로 정리합니다.</p>
+          </div>
+          <label>
+            등록 구분
+            <select value={bulkType} onChange={(event) => setBulkType(event.target.value as BulkContactType)}>
+              <option value="auto">자동 구분</option>
+              <option value="partner">협력 업체</option>
+              <option value="manager">판매 매니저</option>
+            </select>
+          </label>
+        </div>
+        <textarea
+          value={bulkText}
+          onChange={(event) => setBulkText(event.target.value)}
+          placeholder={"예:\n1. 루이스 (lewis) : 010-0000-0000\n2. 카플레이 : 010-0000-0000\n   - 블랙박스"}
+        />
+        <div>
+          <small>{bulkText.trim() ? `${parseBulkContacts(bulkText, bulkType).length}개 연락처 인식` : "붙여넣은 내용은 이 PC에서만 처리됩니다."}</small>
+          <button type="button" onClick={registerBulkContacts}>분석 후 일괄 등록</button>
         </div>
       </div>
 
@@ -258,4 +310,71 @@ function isContact(value: unknown): value is LocalContact {
     && typeof contact.label === "string"
     && typeof contact.note === "string"
   );
+}
+
+function parseBulkContacts(rawText: string, forcedType: BulkContactType): Omit<LocalContact, "id">[] {
+  const lines = rawText
+    .split(/\r?\n/)
+    .map((line) => cleanBulkLine(line))
+    .filter(Boolean);
+  const contacts: Omit<LocalContact, "id">[] = [];
+  let sectionType: ContactType | null = null;
+
+  for (const line of lines) {
+    if (/판매\s*매니저|sales\s*manager/i.test(line)) {
+      sectionType = "manager";
+      continue;
+    }
+    if (/협력\s*업체|업체\s*연락처|partner/i.test(line)) {
+      sectionType = "partner";
+      continue;
+    }
+
+    const phoneMatches = line.match(/(?:\+?82[-\s]?)?0\d{1,2}[-\s]?\d{3,4}[-\s]?\d{4}/g) || [];
+    const separatorIndex = line.search(/\s*[:：]\s*/);
+    if (!phoneMatches.length && separatorIndex < 0) {
+      const previous = contacts.at(-1);
+      if (previous && line.length > 1) previous.note = [previous.note, line].filter(Boolean).join(" · ");
+      continue;
+    }
+
+    const firstPhoneIndex = phoneMatches.length ? line.indexOf(phoneMatches[0]!) : -1;
+    const splitIndex = separatorIndex >= 0 ? separatorIndex : firstPhoneIndex;
+    const left = (splitIndex >= 0 ? line.slice(0, splitIndex) : line).trim();
+    const right = (splitIndex >= 0 ? line.slice(splitIndex).replace(/^\s*[:：]\s*/, "") : "").trim();
+    const aliasMatch = left.match(/\(([^)]+)\)\s*$/);
+    const name = left.replace(/\s*\([^)]+\)\s*$/, "").trim();
+    const inferredType = aliasMatch || /^@/.test(left) ? "manager" : sectionType || "partner";
+    const type = forcedType === "auto" ? inferredType : forcedType;
+    const phone = phoneMatches.length ? phoneMatches.join(" · ") : right;
+    const remainder = phoneMatches.reduce((text, match) => text.replace(match, ""), right)
+      .replace(/^[\s·,/-]+|[\s·,/-]+$/g, "")
+      .trim();
+
+    if (!name || !phone) continue;
+    contacts.push({
+      type,
+      name,
+      phone,
+      label: aliasMatch ? `@${aliasMatch[1].trim().replace(/^@/, "")}` : "",
+      note: remainder,
+    });
+  }
+
+  return contacts;
+}
+
+function cleanBulkLine(line: string) {
+  return line
+    .trim()
+    .replace(/^[-*•○■]+\s*/, "")
+    .replace(/^\d+[.)]\s*/, "")
+    .replace(/^[a-z][.)]\s*/i, "")
+    .replace(/^\*\*|\*\*$/g, "")
+    .replace(/\*\*/g, "")
+    .trim();
+}
+
+function contactKey(contact: Pick<LocalContact, "name" | "phone">) {
+  return `${contact.name.toLowerCase().replace(/\s/g, "")}|${contact.phone.replace(/\s/g, "")}`;
 }
