@@ -7386,6 +7386,330 @@ textarea {
   to { transform: scale(1.055); }
 }
 
+/* Daily work log and weekly report */
+.daily-log-workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(360px, 0.85fr);
+  gap: 18px;
+  margin-top: 22px;
+}
+
+.daily-log-card {
+  min-width: 0;
+  padding: 20px;
+  background:
+    linear-gradient(145deg, rgba(15, 23, 42, 0.94), rgba(5, 8, 22, 0.96)),
+    rgba(11, 16, 32, 0.94);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: 18px;
+  box-shadow: 0 16px 45px rgba(2, 6, 23, 0.18);
+}
+
+.daily-log-preview-card {
+  align-self: start;
+}
+
+.daily-log-weekly-card,
+.daily-log-history-card {
+  grid-column: 1 / -1;
+}
+
+.daily-log-section-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  margin-bottom: 16px;
+}
+
+.daily-log-section-heading > span {
+  display: grid;
+  width: 34px;
+  height: 30px;
+  flex: 0 0 auto;
+  place-items: center;
+  color: #67e8f9;
+  background: rgba(8, 145, 178, 0.1);
+  border: 1px solid rgba(34, 211, 238, 0.25);
+  border-radius: 9px;
+  font-family: var(--font-console);
+  font-size: 11px;
+  font-weight: 850;
+}
+
+.daily-log-section-heading h2 {
+  margin: 0;
+  color: #f8fafc;
+  font-size: 19px;
+}
+
+.daily-log-section-heading p {
+  margin: 4px 0 0;
+  color: #94a3b8;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.daily-log-field {
+  display: grid;
+  min-width: 0;
+  gap: 7px;
+}
+
+.daily-log-field > span {
+  color: #aab8cc;
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.daily-log-field input,
+.daily-log-field textarea,
+.daily-log-preview,
+.weekly-report-output {
+  width: 100%;
+  color: #e5eefc;
+  background: rgba(2, 6, 23, 0.58);
+  border: 1px solid rgba(148, 163, 184, 0.17);
+  border-radius: 11px;
+  outline: none;
+  font: inherit;
+  line-height: 1.6;
+  transition: border-color 170ms ease, box-shadow 170ms ease;
+}
+
+.daily-log-field input {
+  min-height: 42px;
+  padding: 0 12px;
+}
+
+.daily-log-field textarea {
+  min-height: 94px;
+  padding: 10px 12px;
+  resize: vertical;
+}
+
+.daily-log-field input:focus,
+.daily-log-field textarea:focus,
+.daily-log-preview:focus,
+.weekly-report-output:focus {
+  border-color: rgba(34, 211, 238, 0.55);
+  box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.08);
+}
+
+.daily-log-raw {
+  min-height: 230px !important;
+}
+
+.daily-log-count-grid {
+  display: grid;
+  grid-template-columns: 1.3fr 0.7fr repeat(3, minmax(105px, 0.75fr));
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.daily-log-text-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.daily-log-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.daily-log-actions button:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+
+.daily-log-preview {
+  min-height: 650px;
+  padding: 16px;
+  resize: vertical;
+  white-space: pre-wrap;
+}
+
+.weekly-period-row {
+  display: grid;
+  grid-template-columns: minmax(170px, 0.8fr) minmax(170px, 0.8fr) auto minmax(120px, 0.5fr);
+  gap: 10px;
+  align-items: end;
+}
+
+.weekly-record-count {
+  display: flex;
+  min-height: 42px;
+  align-items: baseline;
+  justify-content: center;
+  gap: 5px;
+  padding: 9px 12px;
+  background: rgba(8, 145, 178, 0.08);
+  border: 1px solid rgba(34, 211, 238, 0.16);
+  border-radius: 11px;
+}
+
+.weekly-record-count strong {
+  color: #67e8f9;
+  font-size: 20px;
+}
+
+.weekly-record-count span {
+  color: #94a3b8;
+  font-size: 12px;
+}
+
+.weekly-manual-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.weekly-long-fields {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.weekly-report-output {
+  min-height: 620px;
+  margin-top: 14px;
+  padding: 16px;
+  resize: vertical;
+}
+
+.daily-log-history-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.daily-log-history-list article {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  padding: 7px;
+  background: rgba(2, 6, 23, 0.42);
+  border: 1px solid rgba(148, 163, 184, 0.13);
+  border-radius: 12px;
+  transition: border-color 170ms ease, background-color 170ms ease;
+}
+
+.daily-log-history-list article:hover {
+  background: rgba(15, 23, 42, 0.64);
+  border-color: rgba(34, 211, 238, 0.26);
+}
+
+.daily-log-history-list article > button:first-child {
+  display: grid;
+  flex: 1;
+  gap: 3px;
+  padding: 7px 9px;
+  color: inherit;
+  text-align: left;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.daily-log-history-list strong {
+  color: #e2e8f0;
+  font-size: 14px;
+}
+
+.daily-log-history-list span {
+  color: #a5b4c8;
+  font-size: 12px;
+}
+
+.daily-log-history-list small {
+  color: #64748b;
+  font-size: 11px;
+}
+
+.record-delete-button {
+  min-width: 56px;
+  color: #fda4af;
+  background: rgba(190, 24, 93, 0.06);
+  border: 1px solid rgba(251, 113, 133, 0.14);
+  border-radius: 9px;
+  cursor: pointer;
+}
+
+.danger-text {
+  color: #fda4af !important;
+}
+
+.daily-log-toast {
+  position: fixed;
+  z-index: 180;
+  right: 24px;
+  bottom: 24px;
+  max-width: min(420px, calc(100vw - 32px));
+  padding: 12px 15px;
+  color: #dbeafe;
+  background: rgba(8, 15, 32, 0.95);
+  border: 1px solid rgba(34, 211, 238, 0.3);
+  border-radius: 12px;
+  box-shadow: 0 18px 50px rgba(2, 6, 23, 0.42);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+@media (max-width: 1100px) {
+  .daily-log-workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .daily-log-weekly-card,
+  .daily-log-history-card {
+    grid-column: auto;
+  }
+
+  .daily-log-preview {
+    min-height: 460px;
+  }
+
+  .daily-log-count-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .weekly-manual-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
+  .daily-log-card {
+    padding: 15px;
+  }
+
+  .daily-log-count-grid,
+  .daily-log-text-grid,
+  .weekly-period-row,
+  .weekly-manual-grid,
+  .weekly-long-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .daily-log-raw {
+    min-height: 190px !important;
+  }
+
+  .daily-log-preview,
+  .weekly-report-output {
+    min-height: 420px;
+  }
+
+  .daily-log-actions .platform-button {
+    flex: 1 1 auto;
+  }
+}
+
 .launcher-private-video.is-active {
   opacity: 1;
 }

@@ -27,6 +27,14 @@ export const categories = [
     description: "항동센터에서 자주 발생하는 예외 처리와 운영 프로세스를 정리합니다.",
     count: 1,
   },
+  {
+    href: "/operations",
+    status: "LIVE" as const,
+    tone: "indigo" as Tone,
+    title: "업무일지 / 주간 리포트",
+    description: "일일 업무일지를 저장하고 금~목 기준 주간 회의 자료로 자동 취합합니다.",
+    count: 1,
+  },
 ];
 
 export const toolSearchItems = [
@@ -75,6 +83,15 @@ export const toolSearchItems = [
     tone: "cyan" as Tone,
     keywords: ["항동", "항동센터", "복귀", "복귀차량", "입고", "입고목록", "판매보류", "광고중"],
   },
+  {
+    title: "일일 업무일지 / 주간 리포트",
+    category: "운영 업무",
+    description: "슬랙 일일 업무일지를 기록하고 주간 합계와 회의용 리포트를 생성합니다.",
+    href: "/operations",
+    status: "LIVE" as const,
+    tone: "indigo" as Tone,
+    keywords: ["일일", "업무일지", "주간", "리포트", "회의", "출고준비", "탁송인계", "인사", "연차", "항동"],
+  },
 ];
 
 export const updates: UpdateGroup[] = [
@@ -83,6 +100,11 @@ export const updates: UpdateGroup[] = [
     items: [
       {
         version: APP_VERSION,
+        title: "일일 업무일지 및 주간 리포트",
+        description: "슬랙 업무일지 분석, 일일 기록 저장, 전주 대비 주간 회의 리포트 생성을 추가했습니다.",
+      },
+      {
+        version: "1.8.2",
         title: "개인 배경 로컬화",
         description: "개인 영상과 이미지를 EXE에 포함하지 않고 PC 로컬 폴더에서 관리하도록 변경했습니다.",
       },

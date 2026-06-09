@@ -31,6 +31,7 @@
 - `/transport-tools/issue-helper`: 탁송 이슈 응답 보조
 - `/transport-tools/jeju-request`: 제주도 탁송 요청 문구 생성
 - `/hangdong-guide`: 항동센터 가이드
+- `/operations`: 일일 업무일지 입력 및 주간 리포트 생성
 - `/settings`: 프라이빗 모드 설정
 
 자동 분석 결과는 현장 문장 형태에 따라 달라질 수 있으므로 문구 생성 전에 추출값을 확인해 주세요.
@@ -78,3 +79,9 @@ npm run release:electron
 Electron EXE의 `/settings`에서 `로컬 배경 추가`를 누르면 영상과 이미지가
 `%APPDATA%\PDI Backoffice\backgrounds`에 복사됩니다.
 개인 배경은 프로젝트, GitHub 저장소, 설치파일과 자동 업데이트 패키지에 포함되지 않습니다.
+
+## 일일 업무일지 데이터
+
+`/operations`의 일일 기록은 브라우저 `localStorage`에 저장됩니다.
+외부 서버로 전송되지 않으며 JSON 내보내기/가져오기로 PC 간 백업과 복원이 가능합니다.
+주간 리포트는 금요일부터 목요일까지 저장된 기록을 합산하고, 전주 기록이 있으면 증감 문구를 자동 생성합니다.

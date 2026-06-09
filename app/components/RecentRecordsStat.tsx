@@ -3,17 +3,24 @@
 import { useEffect, useState } from "react";
 
 const STORAGE_KEY = "pdi-merchandising-recommendation-history-v1";
+const DAILY_LOG_STORAGE_KEY = "pdi-daily-work-log-v1";
 
 export default function RecentRecordsStat() {
   const [count, setCount] = useState(0);
 
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) setCount(JSON.parse(saved).length);
-    } catch {
-      setCount(0);
-    }
+    const updateCount = () => {
+      try {
+        const merchandising = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+        const dailyLogs = JSON.parse(localStorage.getItem(DAILY_LOG_STORAGE_KEY) || "[]");
+        setCount((Array.isArray(merchandising) ? merchandising.length : 0) + (Array.isArray(dailyLogs) ? dailyLogs.length : 0));
+      } catch {
+        setCount(0);
+      }
+    };
+    updateCount();
+    window.addEventListener("pdi-records-updated", updateCount);
+    return () => window.removeEventListener("pdi-records-updated", updateCount);
   }, []);
 
   return (

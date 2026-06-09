@@ -1,5 +1,5 @@
 export const APP_NAME = "PDI 백오피스 플랫폼";
 export const APP_SHORT_NAME = "PDI Backoffice";
 export const APP_DESCRIPTION = "PDI 업무 보조 콘솔";
-export const APP_VERSION = "1.8.2";
+export const APP_VERSION = "1.9.0";
 export const APP_VERSION_LABEL = `v${APP_VERSION}`;

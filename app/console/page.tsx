@@ -23,8 +23,8 @@ export default function PlatformConsole() {
         </section>
 
         <section className="stats-grid" aria-label="플랫폼 통계">
-          <StatCard label="사용 가능 도구 수" value="5" accent="cyan" />
-          <StatCard label="ON 기능 수" value="5" accent="green" />
+          <StatCard label="사용 가능 도구 수" value="6" accent="cyan" />
+          <StatCard label="ON 기능 수" value="6" accent="green" />
           <RecentRecordsStat />
           <StatCard label="개발중 기능 수" value="0" accent="slate" />
         </section>
