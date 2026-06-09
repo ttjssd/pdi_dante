@@ -1,5 +1,4 @@
 import { BackButton, Breadcrumb, ModuleCard, PlatformHeader } from "../components/platform";
-import ContactDirectory from "./ContactDirectory";
 
 const modules = [
   {
@@ -8,6 +7,13 @@ const modules = [
     status: "LIVE" as const,
     href: "/hangdong-guide/return-after-remanufacturing",
     tone: "cyan" as const,
+  },
+  {
+    title: "연락처 모음",
+    description: "협력업체와 판매 매니저 연락처를 현재 PC에 등록하고 관리합니다.",
+    status: "LIVE" as const,
+    href: "/hangdong-guide/contacts",
+    tone: "indigo" as const,
   },
 ];
 
@@ -38,8 +44,6 @@ export default function HangdongGuidePage() {
             {modules.map((module, index) => <ModuleCard key={module.title} {...module} index={index} />)}
           </div>
         </section>
-
-        <ContactDirectory />
       </div>
       <footer className="platform-footer">
         <strong>PDI BACKOFFICE PLATFORM</strong>

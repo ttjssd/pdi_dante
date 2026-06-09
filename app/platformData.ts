@@ -25,7 +25,7 @@ export const categories = [
     tone: "cyan" as Tone,
     title: "항동센터 가이드",
     description: "항동센터에서 자주 발생하는 예외 처리와 운영 프로세스를 정리합니다.",
-    count: 1,
+    count: 2,
   },
   {
     href: "/operations",
@@ -84,6 +84,15 @@ export const toolSearchItems = [
     keywords: ["항동", "항동센터", "복귀", "복귀차량", "입고", "입고목록", "판매보류", "광고중"],
   },
   {
+    title: "연락처 모음",
+    category: "항동센터 가이드",
+    description: "협력업체와 판매 매니저 연락처를 현재 PC에 등록하고 관리합니다.",
+    href: "/hangdong-guide/contacts",
+    status: "LIVE" as const,
+    tone: "indigo" as Tone,
+    keywords: ["항동", "연락처", "전화번호", "협력업체", "판매매니저", "매니저", "업체", "로컬"],
+  },
+  {
     title: "일일 업무일지 / 주간 리포트",
     category: "운영 업무",
     description: "슬랙 일일 업무일지를 기록하고 주간 합계와 회의용 리포트를 생성합니다.",
@@ -100,6 +109,11 @@ export const updates: UpdateGroup[] = [
     items: [
       {
         version: APP_VERSION,
+        title: "항동센터 연락처 가이드 분리",
+        description: "연락처 모음을 항동센터 가이드의 두 번째 독립 기능으로 분리했습니다.",
+      },
+      {
+        version: "1.9.3",
         title: "항동센터 연락처 및 업데이트 개선",
         description: "협력업체·판매 매니저 연락처를 추가하고 업데이트가 예고 없이 설치되지 않도록 적용 흐름을 정리했습니다.",
       },
