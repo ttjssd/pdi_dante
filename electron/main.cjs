@@ -1,8 +1,9 @@
-const { app, BrowserWindow, ipcMain, shell } = require("electron");
+const { app, BrowserWindow, dialog, ipcMain, net: electronNet, protocol, shell } = require("electron");
 const { spawn } = require("child_process");
 const fs = require("fs");
 const path = require("path");
-const net = require("net");
+const nodeNet = require("net");
+const { pathToFileURL } = require("url");
 const packageJson = require("../package.json");
 
 const PORT = process.env.PDI_PORT || "3187";
@@ -11,6 +12,78 @@ const APP_TITLE = "PDI Backoffice";
 let nextProcess;
 let mainWindow;
 let autoUpdater;
+
+protocol.registerSchemesAsPrivileged([
+  {
+    scheme: "pdi-media",
+    privileges: {
+      secure: true,
+      standard: true,
+      supportFetchAPI: true,
+      stream: true,
+    },
+  },
+]);
+
+const BACKGROUND_EXTENSIONS = new Map([
+  [".mp4", "video"],
+  [".webm", "video"],
+  [".ogv", "video"],
+  [".png", "image"],
+  [".jpg", "image"],
+  [".jpeg", "image"],
+  [".webp", "image"],
+  [".gif", "image"],
+]);
+
+function getBackgroundDirectory() {
+  return path.join(app.getPath("userData"), "backgrounds");
+}
+
+function ensureBackgroundDirectory() {
+  const directory = getBackgroundDirectory();
+  fs.mkdirSync(directory, { recursive: true });
+  return directory;
+}
+
+function isPathInsideDirectory(candidate, directory) {
+  const relative = path.relative(directory, candidate);
+  return relative && !relative.startsWith("..") && !path.isAbsolute(relative);
+}
+
+function getLocalBackgrounds() {
+  const directory = ensureBackgroundDirectory();
+  return fs.readdirSync(directory, { withFileTypes: true })
+    .filter((entry) => entry.isFile() && BACKGROUND_EXTENSIONS.has(path.extname(entry.name).toLowerCase()))
+    .map((entry) => {
+      const extension = path.extname(entry.name).toLowerCase();
+      const filePath = path.join(directory, entry.name);
+      const displayName = path.basename(entry.name, extension).replace(/-\d{13}-[a-z0-9]{5}$/i, "");
+      return {
+        id: entry.name,
+        name: displayName,
+        type: BACKGROUND_EXTENSIONS.get(extension),
+        url: `pdi-media://backgrounds/${encodeURIComponent(entry.name)}`,
+        size: fs.statSync(filePath).size,
+      };
+    })
+    .sort((a, b) => a.name.localeCompare(b.name, "ko"));
+}
+
+async function setupLocalBackgroundProtocol() {
+  protocol.handle("pdi-media", (request) => {
+    const requestUrl = new URL(request.url);
+    if (requestUrl.hostname !== "backgrounds") return new Response("Not found", { status: 404 });
+
+    const directory = ensureBackgroundDirectory();
+    const fileName = decodeURIComponent(requestUrl.pathname.replace(/^\/+/, ""));
+    const filePath = path.resolve(directory, fileName);
+    if (!isPathInsideDirectory(filePath, directory) || !fs.existsSync(filePath)) {
+      return new Response("Not found", { status: 404 });
+    }
+    return electronNet.fetch(pathToFileURL(filePath).toString());
+  });
+}
 
 function writeDebugLog(message) {
   try {
@@ -79,7 +152,7 @@ function waitForServer(url, timeoutMs = 20000) {
   const startedAt = Date.now();
   return new Promise((resolve, reject) => {
     const check = () => {
-      const socket = net.createConnection(Number(PORT), "127.0.0.1");
+      const socket = nodeNet.createConnection(Number(PORT), "127.0.0.1");
       socket.once("connect", () => {
         socket.destroy();
         resolve();
@@ -190,7 +263,55 @@ ipcMain.handle("updater:restart", () => {
   return true;
 });
 
-app.whenReady().then(createWindow);
+ipcMain.handle("backgrounds:list", () => getLocalBackgrounds());
+
+ipcMain.handle("backgrounds:add", async () => {
+  const result = await dialog.showOpenDialog(mainWindow, {
+    title: "프라이빗 배경 추가",
+    properties: ["openFile", "multiSelections"],
+    filters: [
+      { name: "영상 및 이미지", extensions: [...BACKGROUND_EXTENSIONS.keys()].map((ext) => ext.slice(1)) },
+      { name: "영상", extensions: ["mp4", "webm", "ogv"] },
+      { name: "이미지", extensions: ["png", "jpg", "jpeg", "webp", "gif"] },
+    ],
+  });
+
+  if (result.canceled) return getLocalBackgrounds();
+
+  const directory = ensureBackgroundDirectory();
+  for (const sourcePath of result.filePaths) {
+    const extension = path.extname(sourcePath).toLowerCase();
+    if (!BACKGROUND_EXTENSIONS.has(extension)) continue;
+    const safeBase = path.basename(sourcePath, extension)
+      .normalize("NFKC")
+      .replace(/[<>:"/\\|?*\u0000-\u001f]/g, "-")
+      .replace(/\s+/g, " ")
+      .trim()
+      .slice(0, 80) || "background";
+    const suffix = Math.random().toString(36).slice(2, 7);
+    const destination = path.join(directory, `${safeBase}-${Date.now()}-${suffix}${extension}`);
+    fs.copyFileSync(sourcePath, destination);
+  }
+  return getLocalBackgrounds();
+});
+
+ipcMain.handle("backgrounds:remove", (_event, id) => {
+  const directory = ensureBackgroundDirectory();
+  const filePath = path.resolve(directory, String(id || ""));
+  if (isPathInsideDirectory(filePath, directory) && fs.existsSync(filePath)) {
+    fs.rmSync(filePath, { force: true });
+  }
+  return getLocalBackgrounds();
+});
+
+ipcMain.handle("backgrounds:open-folder", async () => {
+  await shell.openPath(ensureBackgroundDirectory());
+});
+
+app.whenReady().then(async () => {
+  await setupLocalBackgroundProtocol();
+  await createWindow();
+});
 
 app.on("window-all-closed", () => {
   if (nextProcess && !nextProcess.killed) nextProcess.kill();

@@ -22,3 +22,18 @@ contextBridge.exposeInMainWorld("pdiWindow", {
     return ipcRenderer.invoke("window:get-mode");
   },
 });
+
+contextBridge.exposeInMainWorld("pdiBackgrounds", {
+  list() {
+    return ipcRenderer.invoke("backgrounds:list");
+  },
+  add() {
+    return ipcRenderer.invoke("backgrounds:add");
+  },
+  remove(id) {
+    return ipcRenderer.invoke("backgrounds:remove", id);
+  },
+  openFolder() {
+    return ipcRenderer.invoke("backgrounds:open-folder");
+  },
+});

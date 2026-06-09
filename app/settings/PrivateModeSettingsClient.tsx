@@ -1,15 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import type { LocalBackground } from "../electronBridge";
 import {
   DEFAULT_PRIVATE_SETTINGS,
   loadPrivateSettings,
   normalizePrivateSettings,
   PRIVATE_MODE_KEY,
   PRIVATE_SETTINGS_KEY,
-  PRIVATE_VIDEO_OPTIONS,
   type PrivateModeSettings,
-  type PrivateVideoId,
 } from "../privateModeSettings";
 
 export default function PrivateModeSettingsClient() {
@@ -17,30 +16,43 @@ export default function PrivateModeSettingsClient() {
   const [currentPin, setCurrentPin] = useState("");
   const [newPin, setNewPin] = useState("");
   const [message, setMessage] = useState("");
+  const [backgrounds, setBackgrounds] = useState<LocalBackground[]>([]);
+  const [electronAvailable, setElectronAvailable] = useState(false);
 
   useEffect(() => {
-    setSettings(loadPrivateSettings(window.localStorage));
+    const storedSettings = loadPrivateSettings(window.localStorage);
+    setSettings(storedSettings);
+    if (!window.pdiBackgrounds) return;
+    setElectronAvailable(true);
+    window.pdiBackgrounds.list().then((items) => {
+      setBackgrounds(items);
+      setSettings((current) => ({
+        ...current,
+        enabledMedia: current.enabledMedia.length > 0 ? current.enabledMedia : items.map((item) => item.id),
+        playbackOrder: mergeMediaOrder(current.playbackOrder, items),
+      }));
+    }).catch(() => setMessage("로컬 배경 목록을 불러오지 못했습니다."));
   }, []);
 
-  const toggleVideo = (id: PrivateVideoId) => {
+  const toggleMedia = (id: string) => {
     setSettings((current) => {
-      const enabled = current.enabledVideos.includes(id);
-      if (enabled && current.enabledVideos.length === 1) {
-        setMessage("영상은 최소 1개 이상 활성화해야 합니다.");
+      const enabled = current.enabledMedia.includes(id);
+      if (enabled && current.enabledMedia.length === 1) {
+        setMessage("배경은 최소 1개 이상 활성화해야 합니다.");
         return current;
       }
 
       setMessage("");
       return {
         ...current,
-        enabledVideos: enabled
-          ? current.enabledVideos.filter((videoId) => videoId !== id)
-          : [...current.enabledVideos, id],
+        enabledMedia: enabled
+          ? current.enabledMedia.filter((mediaId) => mediaId !== id)
+          : [...current.enabledMedia, id],
       };
     });
   };
 
-  const moveVideo = (id: PrivateVideoId, direction: -1 | 1) => {
+  const moveMedia = (id: string, direction: -1 | 1) => {
     setSettings((current) => {
       const order = [...current.playbackOrder];
       const index = order.indexOf(id);
@@ -49,6 +61,30 @@ export default function PrivateModeSettingsClient() {
       [order[index], order[nextIndex]] = [order[nextIndex], order[index]];
       return { ...current, playbackOrder: order };
     });
+  };
+
+  const addBackgrounds = async () => {
+    if (!window.pdiBackgrounds) return;
+    const items = await window.pdiBackgrounds.add();
+    setBackgrounds(items);
+    setSettings((current) => ({
+      ...current,
+      enabledMedia: Array.from(new Set([...current.enabledMedia, ...items.map((item) => item.id)])),
+      playbackOrder: mergeMediaOrder(current.playbackOrder, items),
+    }));
+    setMessage(items.length > 0 ? "로컬 배경을 추가했습니다. 설정 저장을 눌러주세요." : "");
+  };
+
+  const removeBackground = async (item: LocalBackground) => {
+    if (!window.pdiBackgrounds || !window.confirm(`"${item.name}" 배경을 로컬 폴더에서 삭제할까요?`)) return;
+    const items = await window.pdiBackgrounds.remove(item.id);
+    setBackgrounds(items);
+    setSettings((current) => ({
+      ...current,
+      enabledMedia: current.enabledMedia.filter((id) => id !== item.id),
+      playbackOrder: mergeMediaOrder(current.playbackOrder.filter((id) => id !== item.id), items),
+    }));
+    setMessage("로컬 배경을 삭제했습니다.");
   };
 
   const saveSettings = () => {
@@ -94,39 +130,63 @@ export default function PrivateModeSettingsClient() {
         <div className="private-settings-heading">
           <span>01</span>
           <div>
-            <h2>영상 재생 목록</h2>
-            <p>사용할 영상을 선택하고 재생 순서를 조정합니다.</p>
+            <h2>로컬 배경 라이브러리</h2>
+            <p>개인 영상과 이미지는 이 PC에만 저장되며 EXE와 GitHub에 포함되지 않습니다.</p>
           </div>
         </div>
 
+        <div className="private-local-actions">
+          <button className="platform-button button-primary" type="button" onClick={addBackgrounds} disabled={!electronAvailable}>
+            로컬 배경 추가
+          </button>
+          <button
+            className="platform-button button-outline"
+            type="button"
+            onClick={() => window.pdiBackgrounds?.openFolder()}
+            disabled={!electronAvailable}
+          >
+            저장 폴더 열기
+          </button>
+        </div>
+        {!electronAvailable && <p className="private-settings-notice">로컬 배경 관리는 Electron EXE에서만 사용할 수 있습니다.</p>}
+
         <div className="private-video-list">
           {settings.playbackOrder.map((id, index) => {
-            const video = PRIVATE_VIDEO_OPTIONS.find((item) => item.id === id);
-            if (!video) return null;
+            const item = backgrounds.find((background) => background.id === id);
+            if (!item) return null;
 
             return (
-              <article key={video.id}>
+              <article key={item.id}>
                 <label>
                   <input
                     type="checkbox"
-                    checked={settings.enabledVideos.includes(video.id)}
-                    onChange={() => toggleVideo(video.id)}
+                    checked={settings.enabledMedia.includes(item.id)}
+                    onChange={() => toggleMedia(item.id)}
                   />
-                  <span>{video.label}</span>
+                  <span>
+                    {item.name}
+                    <small>{item.type === "video" ? "VIDEO" : "IMAGE"} · {formatBytes(item.size)}</small>
+                  </span>
                 </label>
                 <div>
-                  <button type="button" onClick={() => moveVideo(video.id, -1)} disabled={index === 0}>↑</button>
+                  <button type="button" onClick={() => moveMedia(item.id, -1)} disabled={index === 0}>↑</button>
                   <button
                     type="button"
-                    onClick={() => moveVideo(video.id, 1)}
+                    onClick={() => moveMedia(item.id, 1)}
                     disabled={index === settings.playbackOrder.length - 1}
                   >
                     ↓
                   </button>
+                  <button className="is-danger" type="button" onClick={() => removeBackground(item)}>삭제</button>
                 </div>
               </article>
             );
           })}
+          {backgrounds.length === 0 && (
+            <div className="private-empty-state">
+              로컬 배경이 없습니다. 영상 또는 이미지를 추가해주세요.
+            </div>
+          )}
         </div>
       </section>
 
@@ -202,4 +262,16 @@ export default function PrivateModeSettingsClient() {
       </section>
     </div>
   );
+}
+
+function mergeMediaOrder(currentOrder: string[], items: LocalBackground[]) {
+  const availableIds = new Set(items.map((item) => item.id));
+  const preserved = currentOrder.filter((id) => availableIds.has(id));
+  const preservedIds = new Set(preserved);
+  return [...preserved, ...items.map((item) => item.id).filter((id) => !preservedIds.has(id))];
+}
+
+function formatBytes(size: number) {
+  if (size < 1024 * 1024) return `${Math.max(1, Math.round(size / 1024))} KB`;
+  return `${(size / 1024 / 1024).toFixed(1)} MB`;
 }

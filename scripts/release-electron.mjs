@@ -17,6 +17,9 @@ const tag = `v${version}`;
 const setupName = `PDI-Backoffice-Setup-${version}.exe`;
 const blockmapName = `${setupName}.blockmap`;
 const requiredAssets = [setupName, blockmapName, "latest.yml"];
+const ghCommand = process.platform === "win32" && existsSync("C:\\Program Files\\GitHub CLI\\gh.exe")
+  ? "C:\\Program Files\\GitHub CLI\\gh.exe"
+  : "gh";
 
 function fail(message) {
   console.error(`[release] ${message}`);
@@ -53,12 +56,12 @@ if (gitStatus) {
   fail("커밋되지 않은 변경사항이 있습니다. 먼저 릴리즈 커밋과 push를 완료하세요.");
 }
 
-const ghCheck = run("gh", ["--version"], { capture: true, allowFailure: true });
+const ghCheck = run(ghCommand, ["--version"], { capture: true, allowFailure: true });
 if (ghCheck.status !== 0) {
   fail("GitHub CLI(gh)가 없습니다. https://cli.github.com/ 에서 설치 후 gh auth login을 실행하세요.");
 }
 
-const authCheck = run("gh", ["auth", "status"], { capture: true, allowFailure: true });
+const authCheck = run(ghCommand, ["auth", "status"], { capture: true, allowFailure: true });
 if (authCheck.status !== 0) {
   fail("GitHub CLI 로그인이 필요합니다. gh auth login을 먼저 실행하세요.");
 }
@@ -83,16 +86,16 @@ for (const asset of requiredAssets) {
 }
 
 const repo = "ttjssd/pdi_dante";
-const releaseExists = run("gh", ["release", "view", tag, "--repo", repo], {
+const releaseExists = run(ghCommand, ["release", "view", tag, "--repo", repo], {
   capture: true,
   allowFailure: true,
 }).status === 0;
 const assetPaths = requiredAssets.map((name) => path.join(outputDir, name));
 
 if (releaseExists) {
-  run("gh", ["release", "upload", tag, ...assetPaths, "--clobber", "--repo", repo]);
+  run(ghCommand, ["release", "upload", tag, ...assetPaths, "--clobber", "--repo", repo]);
 } else {
-  run("gh", [
+  run(ghCommand, [
     "release",
     "create",
     tag,

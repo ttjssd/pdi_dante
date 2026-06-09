@@ -14,7 +14,7 @@ export default function SettingsPage() {
           <div>
             <span className="platform-kicker">PRIVATE CONSOLE SETTINGS</span>
             <h1>프라이빗 모드 설정</h1>
-            <p>런처 영상, 밝기, 재생 순서와 로컬 PIN을 관리합니다.</p>
+            <p>PC에만 저장되는 개인 배경, 밝기, 재생 순서와 로컬 PIN을 관리합니다.</p>
           </div>
         </section>
         <PrivateModeSettingsClient />

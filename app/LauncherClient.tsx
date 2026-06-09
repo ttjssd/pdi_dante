@@ -4,51 +4,14 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import BrandIcon from "./components/BrandIcon";
 import { APP_VERSION_LABEL } from "./config";
+import type { LocalBackground, UpdaterStatus } from "./electronBridge";
 import { launcherBackgrounds } from "./launcherBackgrounds";
 import {
   DEFAULT_PRIVATE_SETTINGS,
   loadPrivateSettings,
   PRIVATE_MODE_KEY,
-  PRIVATE_VIDEO_OPTIONS,
   type PrivateModeSettings,
 } from "./privateModeSettings";
-
-type UpdaterState =
-  | "idle"
-  | "checking"
-  | "available"
-  | "not-available"
-  | "downloading"
-  | "downloaded"
-  | "error"
-  | "disabled";
-
-type UpdaterStatus = {
-  state: UpdaterState;
-  message: string;
-  version?: string;
-  percent?: number;
-  detail?: string;
-};
-
-type WindowMode = {
-  maximized: boolean;
-  fullScreen: boolean;
-};
-
-declare global {
-  interface Window {
-    pdiWindow?: {
-      enterConsoleMode: () => Promise<WindowMode>;
-      toggleMaximize: () => Promise<WindowMode>;
-      getMode: () => Promise<WindowMode>;
-    };
-    pdiUpdater?: {
-      onStatus: (callback: (payload: UpdaterStatus) => void) => () => void;
-      restartToUpdate: () => Promise<void>;
-    };
-  }
-}
 
 const loadingSteps = [
   { label: "Workspace Check", description: "로컬 작업공간 확인 중" },
@@ -69,6 +32,7 @@ export default function LauncherClient() {
   const [pinMessage, setPinMessage] = useState("");
   const [privateVideoIndex, setPrivateVideoIndex] = useState(0);
   const [privateSettings, setPrivateSettings] = useState<PrivateModeSettings>(DEFAULT_PRIVATE_SETTINGS);
+  const [localBackgrounds, setLocalBackgrounds] = useState<LocalBackground[]>([]);
   const [updateStatus, setUpdateStatus] = useState<UpdaterStatus>({
     state: "idle",
     message: "업데이트 상태 대기 중",
@@ -78,6 +42,7 @@ export default function LauncherClient() {
     const timer = window.setTimeout(() => setEntryLoading(false), 950);
     const settings = loadPrivateSettings(window.localStorage);
     setPrivateSettings(settings);
+    window.pdiBackgrounds?.list().then(setLocalBackgrounds).catch(() => setLocalBackgrounds([]));
     const savedMode = window.localStorage.getItem(PRIVATE_MODE_KEY) === "on";
     setPrivateMode(settings.defaultWorkMode ? false : savedMode);
     if (settings.defaultWorkMode) window.localStorage.setItem(PRIVATE_MODE_KEY, "off");
@@ -149,7 +114,11 @@ export default function LauncherClient() {
     }
 
     if (normalizedPin === privateSettings.pin) {
-      setPrivateVideoIndex(Math.floor(Math.random() * privateVideos.length));
+      if (privateMedia.length === 0) {
+        setPinMessage("먼저 개인 설정에서 로컬 배경을 추가해주세요.");
+        return;
+      }
+      setPrivateVideoIndex(Math.floor(Math.random() * privateMedia.length));
       window.localStorage.setItem(PRIVATE_MODE_KEY, "on");
       setPrivateMode(true);
       setPinPanelOpen(false);
@@ -162,38 +131,61 @@ export default function LauncherClient() {
   };
 
   const playNextPrivateMedia = () => {
-    setPrivateVideoIndex((current) => (current + 1) % privateVideos.length);
+    setPrivateVideoIndex((current) => (current + 1) % privateMedia.length);
   };
 
-  const privateVideos = useMemo(() => {
-    const videosById = new Map(PRIVATE_VIDEO_OPTIONS.map((video) => [video.id, video]));
-    const enabledIds = new Set(privateSettings.enabledVideos);
+  const privateMedia = useMemo(() => {
+    const mediaById = new Map(localBackgrounds.map((item) => [item.id, item]));
+    const enabledIds = new Set(privateSettings.enabledMedia);
+    const useAllMedia = enabledIds.size === 0;
     const ordered = privateSettings.playbackOrder
-      .filter((id) => enabledIds.has(id))
-      .map((id) => videosById.get(id))
-      .filter((video): video is (typeof PRIVATE_VIDEO_OPTIONS)[number] => Boolean(video));
-
-    return ordered.length > 0 ? ordered : [PRIVATE_VIDEO_OPTIONS[0]];
-  }, [privateSettings]);
+      .filter((id) => useAllMedia || enabledIds.has(id))
+      .map((id) => mediaById.get(id))
+      .filter((item): item is LocalBackground => Boolean(item));
+    const orderedIds = new Set(ordered.map((item) => item.id));
+    const remaining = localBackgrounds.filter(
+      (item) => !orderedIds.has(item.id) && (useAllMedia || enabledIds.has(item.id)),
+    );
+    return [...ordered, ...remaining];
+  }, [localBackgrounds, privateSettings.enabledMedia, privateSettings.playbackOrder]);
 
   useEffect(() => {
-    if (privateVideoIndex >= privateVideos.length) setPrivateVideoIndex(0);
-  }, [privateVideoIndex, privateVideos.length]);
+    if (privateVideoIndex >= privateMedia.length) setPrivateVideoIndex(0);
+  }, [privateVideoIndex, privateMedia.length]);
+
+  useEffect(() => {
+    if (!privateMode || privateMedia.length === 0) return;
+    const currentMedia = privateMedia[privateVideoIndex];
+    if (currentMedia.type !== "image") return;
+    const timer = window.setTimeout(playNextPrivateMedia, 10000);
+    return () => window.clearTimeout(timer);
+  }, [privateMode, privateMedia, privateVideoIndex]);
 
   const currentBackground = launcherBackgrounds[backgroundIndex];
+  const currentPrivateMedia = privateMedia[privateVideoIndex];
 
   return (
     <>
       <div className={`launcher-private-video ${privateMode ? "is-active" : ""}`} aria-hidden="true">
-        {privateMode && (
+        {privateMode && currentPrivateMedia?.type === "video" && (
           <video
-            key={privateVideos[privateVideoIndex].src}
-            src={privateVideos[privateVideoIndex].src}
+            key={currentPrivateMedia.id}
+            src={currentPrivateMedia.url}
             autoPlay
             muted
             playsInline
             preload="metadata"
             onEnded={playNextPrivateMedia}
+            onError={playNextPrivateMedia}
+            style={{ filter: `brightness(${privateSettings.brightness}) saturate(1.08) contrast(1.02)` }}
+          />
+        )}
+        {privateMode && currentPrivateMedia?.type === "image" && (
+          <img
+            key={currentPrivateMedia.id}
+            src={currentPrivateMedia.url}
+            alt=""
+            onError={playNextPrivateMedia}
             style={{ filter: `brightness(${privateSettings.brightness}) saturate(1.08) contrast(1.02)` }}
           />
         )}

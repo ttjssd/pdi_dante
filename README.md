@@ -72,3 +72,9 @@ npm run build:electron
 gh auth login
 npm run release:electron
 ```
+
+## 로컬 개인 배경
+
+Electron EXE의 `/settings`에서 `로컬 배경 추가`를 누르면 영상과 이미지가
+`%APPDATA%\PDI Backoffice\backgrounds`에 복사됩니다.
+개인 배경은 프로젝트, GitHub 저장소, 설치파일과 자동 업데이트 패키지에 포함되지 않습니다.

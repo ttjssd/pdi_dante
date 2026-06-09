@@ -5,3 +5,4 @@ outputs/electron
 *.log
 .DS_Store
 .env*.local
+public/launcher-backgrounds/private-*

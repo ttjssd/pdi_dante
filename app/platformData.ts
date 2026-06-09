@@ -79,10 +79,20 @@ export const toolSearchItems = [
 
 export const updates: UpdateGroup[] = [
   {
-    date: "06/08",
+    date: "06/09",
     items: [
       {
         version: APP_VERSION,
+        title: "개인 배경 로컬화",
+        description: "개인 영상과 이미지를 EXE에 포함하지 않고 PC 로컬 폴더에서 관리하도록 변경했습니다.",
+      },
+    ],
+  },
+  {
+    date: "06/08",
+    items: [
+      {
+        version: "1.8.1",
         title: "콘솔 검색 및 런처 정리",
         description: "도구 빠른 검색을 추가하고 런처 업데이트 패널과 프라이빗 배경 표시를 정리했습니다.",
       },

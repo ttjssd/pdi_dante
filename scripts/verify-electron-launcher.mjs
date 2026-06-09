@@ -73,7 +73,16 @@ async function main() {
 
   const initialPath = await evaluate("location.pathname");
   const launcherText = await evaluate(
-    'document.querySelector(".launcher-start-button")?.textContent.includes("START") && document.body.innerText.includes("v1.8.1")',
+    'document.querySelector(".launcher-start-button")?.textContent.includes("START") && document.body.innerText.includes("v1.8.2")',
+  );
+  const localBackgroundBridge = await evaluate(
+    'Boolean(window.pdiBackgrounds && window.pdiBackgrounds.list && window.pdiBackgrounds.add && window.pdiBackgrounds.remove)',
+  );
+  const localBackgroundsReadable = await evaluate(
+    'window.pdiBackgrounds.list().then((items) => Array.isArray(items) && items.every((item) => item.url.startsWith("pdi-media://backgrounds/")))',
+  );
+  const localBackgroundMediaLoads = await evaluate(
+    'window.pdiBackgrounds.list().then(async (items) => items.length > 0 && (await fetch(items[0].url)).ok)',
   );
   const launcherEntryStructure = await evaluate(
     'Boolean(document.querySelector(".launcher-entry-loading")) || document.body.innerText.includes("LAUNCHER INITIALIZING") || document.body.innerText.includes("READYING LAUNCHER")',
@@ -111,7 +120,7 @@ async function main() {
   await delay(900);
   const settingsPath = await evaluate("location.pathname");
   const settingsReady = await evaluate(
-    'document.body.innerText.includes("프라이빗 모드 설정") && document.body.innerText.includes("영상 재생 목록") && document.body.innerText.includes("영상 밝기") && document.body.innerText.includes("앱 시작 시 업무 모드")',
+    'document.body.innerText.includes("프라이빗 모드 설정") && document.body.innerText.includes("로컬 배경 라이브러리") && document.body.innerText.includes("로컬 배경 추가") && document.body.innerText.includes("영상 밝기") && document.body.innerText.includes("앱 시작 시 업무 모드")',
   );
 
   await send("Page.navigate", { url: "http://127.0.0.1:3187/transport-tools/issue-helper" });
@@ -134,6 +143,9 @@ async function main() {
   const result = {
     initialPath,
     launcherText,
+    localBackgroundBridge,
+    localBackgroundsReadable,
+    localBackgroundMediaLoads,
     launcherEntryStructure,
     entryGone,
     loadingVisible,

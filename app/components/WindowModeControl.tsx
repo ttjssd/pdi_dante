@@ -1,21 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
-type WindowMode = {
-  maximized: boolean;
-  fullScreen: boolean;
-};
-
-declare global {
-  interface Window {
-    pdiWindow?: {
-      enterConsoleMode: () => Promise<WindowMode>;
-      toggleMaximize: () => Promise<WindowMode>;
-      getMode: () => Promise<WindowMode>;
-    };
-  }
-}
+import type { WindowMode } from "../electronBridge";
 
 export default function WindowModeControl() {
   const [mode, setMode] = useState<WindowMode>({ maximized: false, fullScreen: false });
