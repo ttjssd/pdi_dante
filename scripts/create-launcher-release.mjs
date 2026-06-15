@@ -41,7 +41,7 @@ const manifest = {
   version,
   minLauncherVersion: "1.0.0",
   releaseDate: new Date().toISOString().slice(0, 10),
-  notes: ["커스텀 Launcher 개발 패키지"],
+  notes: ["상품화 기준 정보 업데이트"],
   packages: {
     windows: {
       url: packageUrl,

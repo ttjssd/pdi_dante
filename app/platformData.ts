@@ -114,17 +114,12 @@ export const toolSearchItems = [
 
 export const updates: UpdateGroup[] = [
   {
-    date: "06/14",
+    date: "06/15",
     items: [
       {
         version: APP_VERSION,
-        title: "상품화 기준 대조 추가",
-        description: "차량 등급과 외판 눌림, 흠집, 철 까짐, 버튼, 틴팅, 타이어, 휠 상태를 기준표와 대조해 권장 작업과 추가 확인사항을 정리합니다.",
-      },
-      {
-        version: APP_VERSION,
-        title: "런처 설정 통합 및 업무 기능 보강",
-        description: "콘솔의 중복 개인설정을 제거하고 런처 UI, MP4 로컬 배경, 입고 수치 인식과 제주 탁송 담당자 정보를 개선했습니다.",
+        title: "상품화 기준 정보 업데이트",
+        description: "차량 등급별 외판 눌림, 흠집, 철 까짐, 버튼, 틴팅, 타이어, 휠 기준 대조를 추가하고 커스텀 런처 설정과 업무 기능을 보강했습니다.",
       },
     ],
   },
