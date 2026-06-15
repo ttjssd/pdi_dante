@@ -28,7 +28,6 @@ export function PlatformHeader() {
       </Link>
       <div className="header-actions">
         <div className="header-status"><span /> LOCAL WORKSPACE</div>
-        <Link className="header-settings-link" href="/settings">개인 설정</Link>
         <WindowModeControl />
       </div>
     </header>

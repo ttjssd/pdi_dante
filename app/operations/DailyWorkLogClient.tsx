@@ -15,7 +15,7 @@ import {
 
 const EXAMPLE_TEXT = `[06/09 (화) 항동 - PDI 일일 업무일지]
 
-• 금일 입고 완료 - 12대
+• 입고 차량 - 12대
 
 • 차량출고준비 - 14대
   (준비 중, 특이사항 차량 총 3대)
@@ -235,23 +235,28 @@ export default function DailyWorkLogClient() {
             <h2>주간 핵심 수치 취합</h2>
             <p>금요일부터 목요일까지 등록된 기록에서 필요한 숫자만 합산합니다.</p>
           </div>
-        </div>
-        <div className="weekly-period-row">
-          <label className="daily-log-field"><span>시작일</span><input type="date" value={period.start} onChange={(event) => setPeriod((current) => ({ ...current, start: event.target.value }))} /></label>
-          <label className="daily-log-field"><span>종료일</span><input type="date" value={period.end} onChange={(event) => setPeriod((current) => ({ ...current, end: event.target.value }))} /></label>
-          <button className="platform-button button-outline" type="button" onClick={() => setPeriod(getMeetingPeriod())}>이번 주 회의 기간</button>
-          <div className="weekly-record-count"><strong>{currentRecords.length}</strong><span>개 일일 기록</span></div>
-        </div>
-
-        <div className={`weekly-integrity-summary ${statusSummary.missing || statusSummary.duplicate || statusSummary.warning ? "has-issues" : ""}`}>
-          <div>
-            <strong>주간 기록 상태</strong>
-            <span>
-              정상 {statusSummary.complete}일 · 미등록 {statusSummary.missing}일 ·
-              중복 {statusSummary.duplicate}일 · 추출 확인 {statusSummary.warning}일
-            </span>
+          <div className="daily-log-heading-status">
+            <strong>{formatCoverageDate(period.start)} - {formatCoverageDate(period.end)}</strong>
+            <span>{currentRecords.length}개 기록 반영</span>
           </div>
-          <small>오늘 이후 날짜는 예정으로 표시되며 누락에 포함하지 않습니다.</small>
+        </div>
+        <div className="weekly-control-panel">
+          <div className="weekly-period-row">
+            <label className="daily-log-field"><span>시작일</span><input type="date" value={period.start} onChange={(event) => setPeriod((current) => ({ ...current, start: event.target.value }))} /></label>
+            <label className="daily-log-field"><span>종료일</span><input type="date" value={period.end} onChange={(event) => setPeriod((current) => ({ ...current, end: event.target.value }))} /></label>
+            <button className="platform-button button-outline" type="button" onClick={() => setPeriod(getMeetingPeriod())}>이번 주 자동 선택</button>
+          </div>
+
+          <div className={`weekly-integrity-summary ${statusSummary.missing || statusSummary.duplicate || statusSummary.warning ? "has-issues" : ""}`}>
+            <div>
+              <strong>기록 점검</strong>
+              <span>
+                정상 {statusSummary.complete}일 · 미등록 {statusSummary.missing}일 ·
+                중복 {statusSummary.duplicate}일 · 추출 확인 {statusSummary.warning}일
+              </span>
+            </div>
+            <small>오늘 이후 날짜는 누락에서 제외됩니다.</small>
+          </div>
         </div>
 
         <div className="weekly-coverage-grid">
@@ -286,9 +291,15 @@ export default function DailyWorkLogClient() {
           <Metric label="특이사항 차량" value={totals.special} />
         </div>
 
-        <div className="daily-log-actions">
-          <button className="platform-button button-primary" type="button" onClick={createWeeklyReport}>주간 리포트 작성</button>
-          <button className="platform-button button-outline" type="button" onClick={copyWeeklyReport} disabled={!weeklyReport}>리포트 복사</button>
+        <div className="weekly-report-heading">
+          <div>
+            <strong>회의용 리포트</strong>
+            <span>자동 합산 결과를 만든 뒤 필요한 내용만 직접 보완하세요.</span>
+          </div>
+          <div className="daily-log-actions">
+            <button className="platform-button button-primary" type="button" onClick={createWeeklyReport}>리포트 작성</button>
+            <button className="platform-button button-outline" type="button" onClick={copyWeeklyReport} disabled={!weeklyReport}>전체 복사</button>
+          </div>
         </div>
         <textarea
           className="weekly-report-output"

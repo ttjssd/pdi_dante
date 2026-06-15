@@ -1,0 +1,21 @@
+{
+  "appId": "com.dante.pdi-launcher",
+  "productName": "PDI Launcher",
+  "executableName": "PDI Launcher",
+  "asar": true,
+  "directories": {
+    "output": "outputs/launcher"
+  },
+  "files": [
+    "launcher/**/*",
+    "package.json"
+  ],
+  "extraMetadata": {
+    "main": "launcher/main.cjs",
+    "version": "1.0.0"
+  },
+  "win": {
+    "signAndEditExecutable": false,
+    "target": ["dir"]
+  }
+}

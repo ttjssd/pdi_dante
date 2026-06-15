@@ -9,7 +9,7 @@ export type JejuRequestForm = {
 
 export function buildJejuRequestText(form: JejuRequestForm) {
   return [
-    "@김경민",
+    "@김경민 @박은희",
     "안녕하세요 차장님,",
     "제주도 탁송 필요 차량 공유드립니다.",
     "",

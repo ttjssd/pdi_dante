@@ -30,6 +30,10 @@ export type WeeklyRecordStatus = {
 };
 
 const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
+const INBOUND_COUNT_PATTERNS = [
+  /(?:금일|오늘|금주)?\s*(?:차량\s*)?입고(?:\s*차량)?(?:\s*완료)?\s*[-:：]?\s*(\d+)\s*대/i,
+  /(?:금일|오늘|금주)?\s*입고\s*차량(?:\s*완료)?\s*[-:：]?\s*(\d+)\s*대/i,
+];
 
 export function createEmptyDraft(date = formatDateInput(new Date())): DailyWorkLogDraft {
   const parsedDate = parseDateInput(date);
@@ -64,10 +68,7 @@ export function parseDailyWorkLog(rawText: string, today = new Date()): DailyWor
     draft.weekday = header[4].trim();
   }
 
-  draft.dailyInboundCount = extractCount(
-    normalized,
-    /(?:금일\s*)?(?:차량\s*)?입고(?:\s*완료)?\s*[-:：]?\s*(\d+)\s*대/i,
-  );
+  draft.dailyInboundCount = extractCountFromPatterns(normalized, INBOUND_COUNT_PATTERNS);
   draft.dailyReadyCount = extractCount(normalized, /차량\s*출고\s*준비\s*[-:：]?\s*(\d+)\s*대/i);
   draft.specialReadyCount = extractCount(normalized, /특이사항\s*차량\s*(?:총)?\s*(\d+)\s*대/i);
   draft.dailyTransportHandOverCount = extractCount(normalized, /금일\s*탁송\s*인계\s*[-:：]?\s*(\d+)\s*대/i);
@@ -78,7 +79,7 @@ export function parseDailyWorkLog(rawText: string, today = new Date()): DailyWor
   for (const originalLine of lines) {
     const line = cleanLine(originalLine);
     if (!line || line.includes("일일 업무일지")) continue;
-    if (/입고(?:\s*완료)?.*\d+\s*대|차량\s*출고\s*준비|준비\s*중.*특이사항|금일\s*탁송\s*인계/.test(line)) continue;
+    if (matchesAny(line, INBOUND_COUNT_PATTERNS) || /차량\s*출고\s*준비|준비\s*중.*특이사항|금일\s*탁송\s*인계/.test(line)) continue;
     if (/금일\s*탁송\s*이력/.test(line)) continue;
 
     if (/항동\s*관리\s*업무/.test(line)) {
@@ -241,12 +242,14 @@ export function buildWeeklyRecordStatuses(
 export function getExtractionWarnings(record: DailyWorkLog) {
   const text = record.rawText || "";
   const checks = [
-    { label: "입고 완료", pattern: /(?:금일\s*)?(?:차량\s*)?입고(?:\s*완료)?\s*[-:：]?\s*\d+\s*대/i },
+    { label: "입고 완료", patterns: INBOUND_COUNT_PATTERNS },
     { label: "출고준비", pattern: /차량\s*출고\s*준비\s*[-:：]?\s*\d+\s*대/i },
     { label: "탁송 인계", pattern: /금일\s*탁송\s*인계\s*[-:：]?\s*\d+\s*대/i },
     { label: "특이사항", pattern: /특이사항\s*차량\s*(?:총)?\s*\d+\s*대/i },
   ];
-  return checks.filter((check) => !check.pattern.test(text)).map((check) => check.label);
+  return checks
+    .filter((check) => check.patterns ? !matchesAny(text, check.patterns) : !check.pattern?.test(text))
+    .map((check) => check.label);
 }
 
 export function splitLines(value: string) {
@@ -287,6 +290,18 @@ function comparisonText(current: number, previous: number, enabled: boolean, uni
 
 function extractCount(text: string, pattern: RegExp) {
   return Number(text.match(pattern)?.[1] || 0);
+}
+
+function extractCountFromPatterns(text: string, patterns: RegExp[]) {
+  for (const pattern of patterns) {
+    const value = extractCount(text, pattern);
+    if (value > 0) return value;
+  }
+  return 0;
+}
+
+function matchesAny(text: string, patterns: RegExp[]) {
+  return patterns.some((pattern) => pattern.test(text));
 }
 
 function cleanLine(value: string) {

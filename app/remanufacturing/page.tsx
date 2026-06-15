@@ -15,6 +15,13 @@ const modules = [
     href: "/remanufacturing/guide",
     tone: "purple" as const,
   },
+  {
+    title: "상품화 기준 대조",
+    description: "차량 등급과 현장 상태를 기준표와 대조해 권장 작업과 추가 확인사항을 정리합니다.",
+    status: "LIVE" as const,
+    href: "/remanufacturing/standards",
+    tone: "cyan" as const,
+  },
 ];
 
 export default function RemanufacturingPage() {

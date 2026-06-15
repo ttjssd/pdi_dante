@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { buildJejuRequestText, type JejuRequestForm } from "./jejuRequestTemplate";
 
 const STORAGE_KEY = "pdi-jeju-transport-request-history-v1";
-const MANAGER_INFO = "@김경민\n유선 연락처: 010-6207-8348";
+const MANAGER_INFO = "@김경민 @박은희\n김경민 유선 연락처: 010-6207-8348";
 
 type FormState = JejuRequestForm;
 
@@ -102,7 +102,7 @@ export default function JejuRequestGenerator() {
         <section className="jeju-form-card">
           <div className="transport-panel-heading">
             <div><span>01</span><h2>요청 정보 입력</h2></div>
-            <small>담당자 @김경민</small>
+            <small>담당자 @김경민 · @박은희</small>
           </div>
 
           <div className="jeju-form-grid">
@@ -155,10 +155,10 @@ export default function JejuRequestGenerator() {
               <h2>제주도 탁송 담당자</h2>
             </div>
             <dl>
-              <div><dt>담당자</dt><dd>@김경민</dd></div>
-              <div><dt>유선 연락처</dt><dd>010-6207-8348</dd></div>
+              <div><dt>담당자</dt><dd>@김경민 · @박은희</dd></div>
+              <div><dt>김경민 유선 연락처</dt><dd>010-6207-8348</dd></div>
             </dl>
-            <p>제주도 탁송 요청 시 @김경민 담당자를 태그해 주세요.<br />유선 연락이 필요한 경우 010-6207-8348 번호를 참고할 수 있습니다.</p>
+            <p>제주도 탁송 요청 시 @김경민 @박은희 담당자를 함께 태그해 주세요.<br />김경민 담당자 유선 연락이 필요한 경우 010-6207-8348 번호를 참고할 수 있습니다.</p>
             <button className="transport-copy" type="button" onClick={() => copyText("manager", MANAGER_INFO)}>{copied === "manager" ? "복사됨" : "담당자 정보 복사"}</button>
           </aside>
         </div>

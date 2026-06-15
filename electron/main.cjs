@@ -9,6 +9,8 @@ const packageJson = require("../package.json");
 const PORT = process.env.PDI_PORT || "3187";
 const APP_URL = `http://127.0.0.1:${PORT}`;
 const APP_TITLE = "PDI Backoffice";
+const MANAGED_BY_LAUNCHER = process.env.PDI_MANAGED_BY_LAUNCHER === "1" || process.argv.includes("--managed-by-launcher");
+const START_IN_CONSOLE = MANAGED_BY_LAUNCHER || process.argv.includes("--console");
 let nextProcess;
 let mainWindow;
 let autoUpdater;
@@ -118,7 +120,6 @@ function sendUpdateStatus(payload) {
   mainWindow.webContents.send("updater:status", updateStatus);
 }
 
-
 function getWindowMode() {
   if (!mainWindow || mainWindow.isDestroyed()) return { maximized: false, fullScreen: false };
   return {
@@ -224,10 +225,10 @@ async function createWindow() {
     return { action: "deny" };
   });
 
-  await mainWindow.loadURL(APP_URL);
+  await mainWindow.loadURL(`${APP_URL}${START_IN_CONSOLE ? "/console" : "/"}`);
   writeDebugLog("window loaded");
 
-  if (app.isPackaged) {
+  if (app.isPackaged && !MANAGED_BY_LAUNCHER) {
     sendUpdateStatus({ state: "checking", message: "최신 버전 확인 중" });
     if (!autoUpdater) {
       sendUpdateStatus({ state: "error", message: "업데이트 모듈을 불러오지 못했습니다" });

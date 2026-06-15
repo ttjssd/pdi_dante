@@ -1,0 +1,26 @@
+{
+  "appId": "com.dante.pdi-backoffice",
+  "productName": "PDI Backoffice",
+  "executableName": "PDI Backoffice",
+  "asar": false,
+  "directories": {
+    "output": "outputs/app-package"
+  },
+  "files": [
+    "electron/**/*",
+    ".next/standalone/**/*",
+    "node_modules/electron-updater/**/*",
+    "node_modules/builder-util-runtime/**/*",
+    "node_modules/lazy-val/**/*",
+    "node_modules/lodash.escaperegexp/**/*",
+    "node_modules/semver/**/*",
+    "node_modules/js-yaml/**/*",
+    "node_modules/debug/**/*",
+    "node_modules/ms/**/*",
+    "package.json"
+  ],
+  "win": {
+    "signAndEditExecutable": false,
+    "target": ["dir"]
+  }
+}

@@ -2,6 +2,15 @@ node_modules
 .next
 out
 outputs/electron
+outputs/app-package
+outputs/launcher
+outputs/launcher-runtime
+outputs/launcher-releases
+outputs/launcher-installer
+outputs/custom-release
+outputs/frameless-runtime
+launcher-data/private-assets
+**/launcher-data/private-assets
 *.log
 .DS_Store
 .env*.local

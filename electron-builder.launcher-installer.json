@@ -1,0 +1,33 @@
+{
+  "appId": "com.dante.pdi-launcher",
+  "productName": "PDI Launcher",
+  "executableName": "PDI Launcher",
+  "asar": true,
+  "directories": {
+    "output": "outputs/launcher-installer"
+  },
+  "files": [
+    "launcher/**/*",
+    "package.json"
+  ],
+  "extraMetadata": {
+    "main": "launcher/main.cjs",
+    "version": "1.0.0"
+  },
+  "win": {
+    "signAndEditExecutable": false,
+    "target": ["nsis"],
+    "artifactName": "PDI-Launcher-Setup-${version}.${ext}"
+  },
+  "nsis": {
+    "oneClick": false,
+    "perMachine": false,
+    "allowToChangeInstallationDirectory": false,
+    "createDesktopShortcut": true,
+    "createStartMenuShortcut": true,
+    "shortcutName": "PDI Launcher",
+    "uninstallDisplayName": "PDI Launcher",
+    "deleteAppDataOnUninstall": false,
+    "runAfterFinish": true
+  }
+}

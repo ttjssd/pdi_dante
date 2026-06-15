@@ -73,7 +73,7 @@ async function main() {
 
   const initialPath = await evaluate("location.pathname");
   const launcherText = await evaluate(
-    'document.querySelector(".launcher-start-button")?.textContent.includes("START") && document.body.innerText.includes("v1.9.6")',
+    'document.querySelector(".launcher-start-button")?.textContent.includes("START") && document.body.innerText.includes("v1.9.7")',
   );
   const localBackgroundBridge = await evaluate(
     'Boolean(window.pdiBackgrounds && window.pdiBackgrounds.list && window.pdiBackgrounds.add && window.pdiBackgrounds.remove)',
@@ -162,13 +162,6 @@ async function main() {
       : `localStorage.setItem("pdi-hangdong-contacts-v1", ${JSON.stringify(originalContacts)})`,
   );
 
-  await send("Page.navigate", { url: "http://127.0.0.1:3187/settings" });
-  await delay(900);
-  const settingsPath = await evaluate("location.pathname");
-  const settingsReady = await evaluate(
-    'document.body.innerText.includes("프라이빗 모드 설정") && document.body.innerText.includes("로컬 배경 라이브러리") && document.body.innerText.includes("로컬 배경 추가") && document.body.innerText.includes("영상 밝기") && document.body.innerText.includes("앱 시작 시 업무 모드")',
-  );
-
   await send("Page.navigate", { url: "http://127.0.0.1:3187/operations" });
   await delay(900);
   const operationsPath = await evaluate("location.pathname");
@@ -204,7 +197,7 @@ async function main() {
     'document.body.innerText.includes("입고 12 · 출고 11 · 출고준비 14 · 특이사항 3") && JSON.parse(localStorage.getItem("pdi-daily-work-log-v1") || "[]").some((record) => record.dailyInboundCount === 12 && record.dailyReadyCount === 14 && record.dailyTransportHandOverCount === 11 && record.specialReadyCount === 3)',
   );
   const weeklyCoverageReady = await evaluate(
-    'document.querySelectorAll(".weekly-coverage-grid > article").length === 7 && document.body.innerText.includes("등록 완료") && document.body.innerText.includes("미등록") && document.body.innerText.includes("예정")',
+    'document.querySelectorAll(".weekly-coverage-grid > article").length === 7 && document.body.innerText.includes("주간 기록 상태") && document.body.innerText.includes("미등록") && document.body.innerText.includes("예정")',
   );
   await evaluate(
     originalDailyRecords === null
@@ -251,8 +244,6 @@ async function main() {
     contactManagementReady,
     localContactsReady,
     bulkContactsReady,
-    settingsPath,
-    settingsReady,
     operationsPath,
     operationsReady,
     operationsParsed,
@@ -262,7 +253,7 @@ async function main() {
   console.log(JSON.stringify(result, null, 2));
 
   const failed = Object.entries(result).filter(([key, value]) => {
-    if (["initialPath", "consolePath", "hangdongPath", "contactsPath", "settingsPath", "operationsPath"].includes(key)) return false;
+    if (["initialPath", "consolePath", "hangdongPath", "contactsPath", "operationsPath"].includes(key)) return false;
     if (key === "launcherEntryStructure") return false;
     return value !== true;
   });
@@ -271,7 +262,6 @@ async function main() {
     result.consolePath !== "/console" ||
     result.hangdongPath !== "/hangdong-guide" ||
     result.contactsPath !== "/hangdong-guide/contacts" ||
-    result.settingsPath !== "/settings" ||
     result.operationsPath !== "/operations" ||
     failed.length
   ) {
@@ -283,7 +273,6 @@ async function main() {
           consolePath: result.consolePath,
           hangdongPath: result.hangdongPath,
           contactsPath: result.contactsPath,
-          settingsPath: result.settingsPath,
           operationsPath: result.operationsPath,
         },
       })}`,

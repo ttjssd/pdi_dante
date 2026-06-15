@@ -9,7 +9,7 @@ export const categories = [
     tone: "teal" as Tone,
     title: "누락(재상품화) 가이드",
     description: "슬랙 특이사항을 누락 신청용 카테고리와 복붙 키워드로 정리합니다.",
-    count: 2,
+    count: 3,
   },
   {
     href: "/transport-tools",
@@ -55,6 +55,15 @@ export const toolSearchItems = [
     status: "LIVE" as const,
     tone: "cyan" as Tone,
     keywords: ["상품화", "가이드", "칸반", "기록", "블랙박스", "공정", "취소선", "업로드"],
+  },
+  {
+    title: "상품화 기준 대조",
+    category: "누락(재상품화) 가이드",
+    description: "차량 등급과 외판·타이어·휠 등 현장 상태를 기준표와 대조합니다.",
+    href: "/remanufacturing/standards",
+    status: "LIVE" as const,
+    tone: "cyan" as Tone,
+    keywords: ["상품화", "기준", "대조", "판정", "등급", "가", "나", "다", "라", "마", "눌림", "흠집", "철까짐", "버튼", "틴팅", "타이어", "휠"],
   },
   {
     title: "탁송 이슈 응답 보조",
@@ -105,10 +114,25 @@ export const toolSearchItems = [
 
 export const updates: UpdateGroup[] = [
   {
-    date: "06/10",
+    date: "06/14",
     items: [
       {
         version: APP_VERSION,
+        title: "상품화 기준 대조 추가",
+        description: "차량 등급과 외판 눌림, 흠집, 철 까짐, 버튼, 틴팅, 타이어, 휠 상태를 기준표와 대조해 권장 작업과 추가 확인사항을 정리합니다.",
+      },
+      {
+        version: APP_VERSION,
+        title: "런처 설정 통합 및 업무 기능 보강",
+        description: "콘솔의 중복 개인설정을 제거하고 런처 UI, MP4 로컬 배경, 입고 수치 인식과 제주 탁송 담당자 정보를 개선했습니다.",
+      },
+    ],
+  },
+  {
+    date: "06/10",
+    items: [
+      {
+        version: "1.9.6",
         title: "연락처 화면 사용성 개선",
         description: "등록된 연락처를 상단에 우선 표시하고 등록·관리 기능을 접이식 영역으로 정리했습니다.",
       },

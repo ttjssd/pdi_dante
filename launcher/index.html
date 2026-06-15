@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PDI Launcher</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div id="privateBackground" class="private-background" aria-hidden="true"></div>
+    <video id="privateVideo" class="private-background private-video" aria-hidden="true" muted loop playsinline></video>
+    <div class="background-shade" aria-hidden="true"></div>
+
+    <main class="launcher">
+      <header class="topbar">
+        <h1>PDI 백오피스 플랫폼</h1>
+        <div class="window-actions">
+          <button id="settingsButton" class="icon-button" type="button" aria-label="런처 설정 열기">⚙</button>
+          <button id="minimizeButton" class="window-button" type="button" aria-label="최소화">−</button>
+          <button id="closeButton" class="window-button close-button" type="button" aria-label="닫기">×</button>
+        </div>
+      </header>
+
+      <section class="launcher-content">
+        <aside class="notice-panel glass-panel">
+          <div class="panel-heading">
+            <div>
+              <span>NOTICE / UPDATE</span>
+              <h2>업데이트</h2>
+            </div>
+          </div>
+          <div id="noticeList" class="notice-list">
+            <article>
+              <small>LAUNCHER</small>
+              <strong>업무 콘솔 상태를 확인하고 있습니다.</strong>
+            </article>
+          </div>
+          <p class="notice-caption">최신 앱 패키지는 GitHub Releases에서 확인합니다.</p>
+        </aside>
+
+        <section class="entry-panel">
+          <div class="entry-actions">
+            <button id="startButton" class="start-button" type="button" disabled>
+              <span id="startLabel">시작</span><b>→</b>
+            </button>
+          </div>
+        </section>
+      </section>
+
+      <footer class="launcher-footer">
+        <div class="launcher-version">APP VERSION <strong id="appVersionFooter">0.0.0</strong></div>
+        <div class="global-progress">
+          <div><span id="progressLabel">업데이트 상태 확인</span><b id="progressValue">0%</b></div>
+          <div class="progress"><i id="progressBar"></i></div>
+        </div>
+      </footer>
+    </main>
+
+    <aside id="settingsPanel" class="settings-panel" aria-hidden="true">
+      <div class="settings-header">
+        <div>
+          <span>LAUNCHER SETTINGS</span>
+          <h2>런처 설정</h2>
+        </div>
+        <button id="closeSettingsButton" class="icon-button" type="button" aria-label="설정 닫기">×</button>
+      </div>
+
+      <section>
+        <div class="setting-title">
+          <div><span>PRIVATE MODE</span><strong id="privateModeLabel">OFF</strong></div>
+          <p>개인 테마 잠금용 기능입니다. 강한 보안 기능은 아닙니다.</p>
+        </div>
+        <div class="pin-row">
+          <input id="pinInput" type="password" inputmode="numeric" maxlength="12" placeholder="PIN 입력" />
+          <button id="privateModeButton" type="button">PRIVATE MODE ON</button>
+        </div>
+        <p id="pinMessage" class="setting-message"></p>
+      </section>
+
+      <section>
+        <div class="setting-title">
+          <div><span>BACKGROUND</span><strong id="backgroundName">DEFAULT</strong></div>
+          <p>PNG, JPG, WEBP, GIF, MP4를 지원합니다. 큰 영상이나 GIF는 성능에 영향을 줄 수 있습니다.</p>
+        </div>
+        <div class="button-row">
+          <button id="defaultBackgroundButton" type="button">기본 배경</button>
+          <button id="selectBackgroundButton" type="button">로컬 배경 선택</button>
+        </div>
+        <button id="resetBackgroundButton" class="reset-background-button" type="button">RESET BACKGROUND</button>
+        <label>
+          배경 어둡기 <output id="dimValue">45%</output>
+          <input id="dimRange" type="range" min="10" max="80" value="45" />
+        </label>
+        <label>
+          배경 블러 <output id="blurValue">0px</output>
+          <input id="blurRange" type="range" min="0" max="12" value="0" />
+        </label>
+      </section>
+
+      <section class="settings-actions">
+        <button id="checkButton" type="button">업데이트 다시 확인</button>
+        <button id="settingsLogButton" type="button">로그 파일 열기</button>
+      </section>
+    </aside>
+    <div id="settingsBackdrop" class="settings-backdrop" hidden></div>
+
+    <script src="./renderer.js"></script>
+  </body>
+</html>
