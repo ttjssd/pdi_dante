@@ -1,6 +1,6 @@
 "use client";
 
-import { ChangeEvent, useMemo, useState } from "react";
+import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import { BackButton, Breadcrumb, PlatformHeader } from "../../components/platform";
 import {
   CATEGORY_OPTIONS,
@@ -20,12 +20,32 @@ export default function StandardsComparator() {
   const [grade, setGrade] = useState<VehicleGrade>("가");
   const [items, setItems] = useState<StandardItem[]>([createStandardItem()]);
   const [hasCompared, setHasCompared] = useState(false);
+  const [isComparing, setIsComparing] = useState(false);
+  const [comparisonRun, setComparisonRun] = useState(0);
   const [copyLabel, setCopyLabel] = useState("전체 복사");
+  const compareTimer = useRef<number | undefined>(undefined);
 
   const assessedItems = useMemo(
     () => items.map((item) => ({ item, result: assessStandard(grade, item) })),
     [grade, items],
   );
+
+  const decisionSummary = useMemo(
+    () =>
+      assessedItems.reduce<Record<string, number>>((summary, { result }) => {
+        summary[result.decision] = (summary[result.decision] ?? 0) + 1;
+        return summary;
+      }, {}),
+    [assessedItems],
+  );
+
+  useEffect(() => () => window.clearTimeout(compareTimer.current), []);
+
+  const invalidateComparison = () => {
+    window.clearTimeout(compareTimer.current);
+    setIsComparing(false);
+    setHasCompared(false);
+  };
 
   const outputText = useMemo(() => {
     const title = `[${vehicleNumber.trim() || "차량번호"}] 상품화 기준 대조 결과`;
@@ -45,7 +65,7 @@ export default function StandardsComparator() {
 
   const updateItem = <K extends keyof StandardItem>(id: string, key: K, value: StandardItem[K]) => {
     setItems((current) => current.map((item) => (item.id === id ? { ...item, [key]: value } : item)));
-    setHasCompared(false);
+    invalidateComparison();
   };
 
   const changeCategory = (id: string, category: StandardCategory) => {
@@ -56,7 +76,7 @@ export default function StandardsComparator() {
           : item,
       ),
     );
-    setHasCompared(false);
+    invalidateComparison();
   };
 
   const handlePhoto = (id: string, event: ChangeEvent<HTMLInputElement>) => {
@@ -72,7 +92,10 @@ export default function StandardsComparator() {
     );
   };
 
-  const addItem = () => setItems((current) => [...current, createStandardItem(current.length)]);
+  const addItem = () => {
+    setItems((current) => [...current, createStandardItem(current.length)]);
+    invalidateComparison();
+  };
 
   const removeItem = (id: string) => {
     setItems((current) => {
@@ -80,13 +103,24 @@ export default function StandardsComparator() {
       if (target?.photoUrl) URL.revokeObjectURL(target.photoUrl);
       return current.filter((item) => item.id !== id);
     });
-    setHasCompared(false);
+    invalidateComparison();
   };
 
   const copyOutput = async () => {
     await navigator.clipboard.writeText(outputText);
     setCopyLabel("복사 완료");
     window.setTimeout(() => setCopyLabel("전체 복사"), 1400);
+  };
+
+  const compareStandards = () => {
+    window.clearTimeout(compareTimer.current);
+    setIsComparing(true);
+    setHasCompared(false);
+    compareTimer.current = window.setTimeout(() => {
+      setComparisonRun((current) => current + 1);
+      setHasCompared(true);
+      setIsComparing(false);
+    }, 420);
   };
 
   return (
@@ -110,6 +144,24 @@ export default function StandardsComparator() {
           <BackButton href="/remanufacturing" />
         </section>
 
+        <nav className="standards-progress" aria-label="상품화 기준 대조 진행 단계">
+          <div className={vehicleNumber.trim() ? "is-complete" : "is-active"}>
+            <span>01</span>
+            <strong>차량 정보</strong>
+            <small>{vehicleNumber.trim() || "차량번호 입력"}</small>
+          </div>
+          <div className={!hasCompared ? "is-active" : "is-complete"}>
+            <span>02</span>
+            <strong>상태 확인</strong>
+            <small>{items.length}개 항목 준비</small>
+          </div>
+          <div className={hasCompared ? "is-active" : ""}>
+            <span>03</span>
+            <strong>기준 결과</strong>
+            <small>{hasCompared ? "대조 완료" : "대조 대기"}</small>
+          </div>
+        </nav>
+
         <section className="standards-layout">
           <div className="standards-input-column">
             <article className="platform-card standards-base-card">
@@ -122,13 +174,22 @@ export default function StandardsComparator() {
                   차량번호
                   <input
                     value={vehicleNumber}
-                    onChange={(event) => setVehicleNumber(event.target.value)}
+                    onChange={(event) => {
+                      setVehicleNumber(event.target.value);
+                      invalidateComparison();
+                    }}
                     placeholder="예: 12가3456"
                   />
                 </label>
                 <label>
                   차량 등급
-                  <select value={grade} onChange={(event) => setGrade(event.target.value as VehicleGrade)}>
+                  <select
+                    value={grade}
+                    onChange={(event) => {
+                      setGrade(event.target.value as VehicleGrade);
+                      invalidateComparison();
+                    }}
+                  >
                     {GRADES.map((value) => <option key={value} value={value}>{value}</option>)}
                   </select>
                 </label>
@@ -142,7 +203,11 @@ export default function StandardsComparator() {
 
             <div className="standards-item-list">
               {items.map((item, index) => (
-                <article className="platform-card standards-item-card" key={item.id}>
+                <article
+                  className="platform-card standards-item-card"
+                  key={item.id}
+                  style={{ "--item-index": index } as React.CSSProperties}
+                >
                   <div className="standards-item-top">
                     <strong>항목 {String(index + 1).padStart(2, "0")}</strong>
                     {items.length > 1 && (
@@ -209,8 +274,14 @@ export default function StandardsComparator() {
               ))}
             </div>
 
-            <button type="button" className="platform-button button-primary standards-compare-button" onClick={() => setHasCompared(true)}>
-              상품화 기준 대조하기
+            <button
+              type="button"
+              className={`platform-button button-primary standards-compare-button${isComparing ? " is-comparing" : ""}`}
+              onClick={compareStandards}
+              disabled={isComparing}
+            >
+              <span>{isComparing ? "기준 분석 중" : "상품화 기준 대조하기"}</span>
+              <i aria-hidden="true" />
             </button>
           </div>
 
@@ -218,19 +289,39 @@ export default function StandardsComparator() {
             <article className="platform-card standards-result-panel">
               <div className="standards-card-heading">
                 <div><span className="section-index">03</span><h2>대조 결과</h2></div>
-                <button type="button" className="platform-button button-outline" onClick={copyOutput}>{copyLabel}</button>
+                <button type="button" className="platform-button button-outline" onClick={copyOutput} disabled={!hasCompared}>
+                  {copyLabel}
+                </button>
               </div>
 
-              {!hasCompared ? (
+              {isComparing ? (
+                <div className="standards-analyzing" role="status">
+                  <span className="standards-analyzing-orbit" aria-hidden="true"><i /></span>
+                  <strong>선택한 상태를 기준표와 대조하고 있습니다.</strong>
+                  <p>{items.length}개 항목의 등급별 경계값을 확인합니다.</p>
+                </div>
+              ) : !hasCompared ? (
                 <div className="standards-empty-result">
                   <strong>기준 대조 전입니다.</strong>
                   <p>차량 등급과 현장 상태를 입력한 뒤 대조 버튼을 눌러주세요.</p>
                 </div>
               ) : (
-                <>
+                <div className="standards-result-reveal" key={comparisonRun}>
+                  <div className="standards-decision-summary">
+                    {Object.entries(decisionSummary).map(([decision, count]) => (
+                      <div className={`decision-${decision.replace(/\s/g, "-")}`} key={decision}>
+                        <span>{decision}</span>
+                        <strong>{count}</strong>
+                      </div>
+                    ))}
+                  </div>
                   <div className="standards-result-list">
                     {assessedItems.map(({ item, result }, index) => (
-                      <section className={`standards-result-card decision-${result.decision.replace(/\s/g, "-")}`} key={item.id}>
+                      <section
+                        className={`standards-result-card decision-${result.decision.replace(/\s/g, "-")}`}
+                        key={item.id}
+                        style={{ "--result-index": index } as React.CSSProperties}
+                      >
                         <header>
                           <span>{String(index + 1).padStart(2, "0")}</span>
                           <div><strong>{item.category}</strong><small>{item.part || item.category}</small></div>
@@ -246,7 +337,7 @@ export default function StandardsComparator() {
                     ))}
                   </div>
                   <pre className="standards-copy-preview">{outputText}</pre>
-                </>
+                </div>
               )}
 
               <div className="standards-caution">

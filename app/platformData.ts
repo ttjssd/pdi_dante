@@ -114,12 +114,12 @@ export const toolSearchItems = [
 
 export const updates: UpdateGroup[] = [
   {
-    date: "06/15",
+    date: "06/16",
     items: [
       {
         version: APP_VERSION,
-        title: "상품화 기준 정보 업데이트",
-        description: "차량 등급별 외판 눌림, 흠집, 철 까짐, 버튼, 틴팅, 타이어, 휠 기준 대조를 추가하고 커스텀 런처 설정과 업무 기능을 보강했습니다.",
+        title: "상품화 기준 UI 및 전환 개선",
+        description: "단계 진행 표시, 분석 전환, 판정 요약과 결과 카드 모션을 추가하고 구형 기준 대조 구현을 정리했습니다.",
       },
     ],
   },

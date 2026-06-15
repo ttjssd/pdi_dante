@@ -37,11 +37,17 @@ const shaFilePath = path.join(output, `${packageFileName}.sha256`);
 const packageUrl = useLocalUrl
   ? pathToFileURL(zipPath).href
   : `https://github.com/ttjssd/pdi_dante/releases/download/v${version}/${packageFileName}`;
+const releaseDate = new Intl.DateTimeFormat("en-CA", {
+  timeZone: "Asia/Seoul",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+}).format(new Date());
 const manifest = {
   version,
   minLauncherVersion: "1.0.0",
-  releaseDate: new Date().toISOString().slice(0, 10),
-  notes: ["상품화 기준 정보 업데이트"],
+  releaseDate,
+  notes: ["상품화 기준 UI 및 전환 개선"],
   packages: {
     windows: {
       url: packageUrl,
