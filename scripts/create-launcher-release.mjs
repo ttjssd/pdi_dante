@@ -47,7 +47,7 @@ const manifest = {
   version,
   minLauncherVersion: "1.0.0",
   releaseDate,
-  notes: ["상품화 기준 UI 및 전환 개선"],
+  notes: ["2.0 HUD UI 리뉴얼"],
   packages: {
     windows: {
       url: packageUrl,

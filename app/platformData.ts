@@ -114,12 +114,12 @@ export const toolSearchItems = [
 
 export const updates: UpdateGroup[] = [
   {
-    date: "06/16",
+    date: "06/19",
     items: [
       {
         version: APP_VERSION,
-        title: "상품화 기준 UI 및 전환 개선",
-        description: "단계 진행 표시, 분석 전환, 판정 요약과 결과 카드 모션을 추가하고 구형 기준 대조 구현을 정리했습니다.",
+        title: "2.0 HUD UI 리뉴얼",
+        description: "개인 관제센터 느낌의 게임 HUD 테마, 전체 카테고리 오버레이, post-it 전환 애니메이션과 입고 수치 인식을 개선했습니다.",
       },
     ],
   },
