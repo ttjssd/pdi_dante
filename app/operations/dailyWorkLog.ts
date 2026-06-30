@@ -1,4 +1,5 @@
 export const DAILY_WORK_LOG_STORAGE_KEY = "pdi-daily-work-log-v1";
+export const WEEKLY_REPORT_STORAGE_KEY = "pdi-weekly-report-v1";
 
 export type DailyWorkLog = {
   id: string;
@@ -8,6 +9,8 @@ export type DailyWorkLog = {
   dailyReadyCount: number;
   specialReadyCount: number;
   dailyTransportHandOverCount: number;
+  customerInboundCount: number;
+  exporterVisitCount: number;
   managementTasks: string[];
   shiftWorkers: string[];
   oldoSupport: string[];
@@ -25,8 +28,30 @@ export type WeeklyRecordStatus = {
   date: string;
   weekday: string;
   records: DailyWorkLog[];
-  state: "complete" | "missing" | "future" | "duplicate" | "warning";
+  state: "complete" | "missing" | "future" | "duplicate" | "warning" | "manual";
   warnings: string[];
+  note?: string;
+};
+
+export type WeeklyReportTotals = {
+  inbound: number;
+  ready: number;
+  special: number;
+  handover: number;
+  customerInbound: number;
+  exporterVisit: number;
+};
+
+export type WeeklyManualAdjustment = Partial<WeeklyReportTotals>;
+
+export type WeeklyReportSnapshot = {
+  id: string;
+  startDate: string;
+  endDate: string;
+  totals: WeeklyReportTotals;
+  report: string;
+  createdAt: string;
+  updatedAt: string;
 };
 
 const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
@@ -34,6 +59,14 @@ const INBOUND_COUNT_PATTERNS = [
   /(?:원창(?:\s*PDI)?).*?(?:항동(?:\s*PDI)?).*?입고(?:\s*(?:대응|진행|처리|완료|차량))?\s*[-:：]?\s*(\d+)\s*대/i,
   /(?:금일|오늘|금주)?\s*(?:차량\s*)?입고(?:\s*차량)?(?:\s*완료)?\s*[-:：]?\s*(\d+)\s*대/i,
   /(?:금일|오늘|금주)?\s*입고\s*차량(?:\s*완료)?\s*[-:：]?\s*(\d+)\s*대/i,
+];
+const CUSTOMER_INBOUND_COUNT_PATTERNS = [
+  /고객\s*인입(?:\s*(?:건|문의|차량|대응))?\s*[-:：]?\s*(\d+)\s*(?:건|명|대)?/i,
+  /인입\s*고객(?:\s*(?:건|문의|차량|대응))?\s*[-:：]?\s*(\d+)\s*(?:건|명|대)?/i,
+];
+const EXPORTER_VISIT_COUNT_PATTERNS = [
+  /수출\s*업자\s*방문(?:\s*(?:건|대응))?\s*[-:：]?\s*(\d+)\s*(?:건|명|팀)?/i,
+  /수출업자\s*방문(?:\s*(?:건|대응))?\s*[-:：]?\s*(\d+)\s*(?:건|명|팀)?/i,
 ];
 
 export function createEmptyDraft(date = formatDateInput(new Date())): DailyWorkLogDraft {
@@ -45,6 +78,8 @@ export function createEmptyDraft(date = formatDateInput(new Date())): DailyWorkL
     dailyReadyCount: 0,
     specialReadyCount: 0,
     dailyTransportHandOverCount: 0,
+    customerInboundCount: 0,
+    exporterVisitCount: 0,
     managementTasks: [],
     shiftWorkers: [],
     oldoSupport: [],
@@ -73,6 +108,8 @@ export function parseDailyWorkLog(rawText: string, today = new Date()): DailyWor
   draft.dailyReadyCount = extractCount(normalized, /차량\s*출고\s*준비\s*[-:：]?\s*(\d+)\s*대/i);
   draft.specialReadyCount = extractCount(normalized, /특이사항\s*차량\s*(?:총)?\s*(\d+)\s*대/i);
   draft.dailyTransportHandOverCount = extractCount(normalized, /금일\s*탁송\s*인계\s*[-:：]?\s*(\d+)\s*대/i);
+  draft.customerInboundCount = extractCountFromPatterns(normalized, CUSTOMER_INBOUND_COUNT_PATTERNS);
+  draft.exporterVisitCount = extractCountFromPatterns(normalized, EXPORTER_VISIT_COUNT_PATTERNS);
 
   let section: "management" | "people" | "other" | "" = "";
   let peopleSection: "shift" | "oldo" | "leave" | "publicLeave" | "" = "";
@@ -80,7 +117,12 @@ export function parseDailyWorkLog(rawText: string, today = new Date()): DailyWor
   for (const originalLine of lines) {
     const line = cleanLine(originalLine);
     if (!line || line.includes("일일 업무일지")) continue;
-    if (matchesAny(line, INBOUND_COUNT_PATTERNS) || /차량\s*출고\s*준비|준비\s*중.*특이사항|금일\s*탁송\s*인계/.test(line)) continue;
+    if (
+      matchesAny(line, INBOUND_COUNT_PATTERNS) ||
+      matchesAny(line, CUSTOMER_INBOUND_COUNT_PATTERNS) ||
+      matchesAny(line, EXPORTER_VISIT_COUNT_PATTERNS) ||
+      /차량\s*출고\s*준비|준비\s*중.*특이사항|금일\s*탁송\s*인계/.test(line)
+    ) continue;
     if (/금일\s*탁송\s*이력/.test(line)) continue;
 
     if (/항동\s*관리\s*업무/.test(line)) {
@@ -153,17 +195,21 @@ export function getMeetingPeriod(baseDate = new Date()) {
 
 export function generateWeeklyReport(
   records: DailyWorkLog[],
-  previousRecords: DailyWorkLog[],
+  previousTotals: WeeklyReportTotals | null,
   startDate: string,
   endDate: string,
+  manualAdjustment: WeeklyManualAdjustment = {},
 ) {
-  const current = summarizeRecords(records);
-  const previous = summarizeRecords(previousRecords);
-  const hasPrevious = previousRecords.length > 0;
+  const current = addTotals(summarizeRecords(records), manualAdjustment);
+  const previous = previousTotals || emptyTotals();
+  const hasPrevious = Boolean(previousTotals);
 
   return `[${formatReportPeriod(startDate, endDate)} 항동PDI센터]
 
 금주 입고 완료 - ${current.inbound}대${comparisonText(current.inbound, previous.inbound, hasPrevious, "대")}
+
+고객 인입 - ${current.customerInbound}건${comparisonText(current.customerInbound, previous.customerInbound, hasPrevious, "건")}
+수출업자 방문 - ${current.exporterVisit}건${comparisonText(current.exporterVisit, previous.exporterVisit, hasPrevious, "건")}
 
 금주 탁송인계 완료
 출고완료 - ${current.handover}대${comparisonText(current.handover, previous.handover, hasPrevious, "대")}
@@ -196,6 +242,10 @@ export function generateWeeklyReport(
 (수기 입력)`;
 }
 
+export function summarizeWeeklyRecords(records: DailyWorkLog[], manualAdjustment: WeeklyManualAdjustment = {}) {
+  return addTotals(summarizeRecords(records), manualAdjustment);
+}
+
 export function filterRecordsByPeriod(records: DailyWorkLog[], startDate: string, endDate: string) {
   return records
     .filter((record) => record.date >= startDate && record.date <= endDate)
@@ -220,19 +270,26 @@ export function buildWeeklyRecordStatuses(
 
   while (cursor <= endDate) {
     const dateRecords = records.filter((record) => record.date === cursor);
-    const warnings = unique(dateRecords.flatMap(getExtractionWarnings));
+    const weekday = WEEKDAYS[parseDateInput(cursor).getDay()];
+    const isThursday = weekday === "목";
+    const warnings = isThursday ? [] : unique(dateRecords.flatMap(getExtractionWarnings));
     let state: WeeklyRecordStatus["state"] = "complete";
+    let note: string | undefined;
 
-    if (dateRecords.length === 0) state = cursor > todayValue ? "future" : "missing";
+    if (isThursday) {
+      state = "manual";
+      note = "목요일 오후 회의 전 직접 확인 후 수요일까지 합계에 수기 더하기";
+    } else if (dateRecords.length === 0) state = cursor > todayValue ? "future" : "missing";
     else if (dateRecords.length > 1) state = "duplicate";
     else if (warnings.length > 0) state = "warning";
 
     statuses.push({
       date: cursor,
-      weekday: WEEKDAYS[parseDateInput(cursor).getDay()],
+      weekday,
       records: dateRecords,
       state,
       warnings,
+      note,
     });
     cursor = shiftDate(cursor, 1);
   }
@@ -242,13 +299,17 @@ export function buildWeeklyRecordStatuses(
 
 export function getExtractionWarnings(record: DailyWorkLog) {
   const text = record.rawText || "";
+  const isWeekend = record.weekday === "토" || record.weekday === "일";
   const checks = [
-    { label: "입고 완료", patterns: INBOUND_COUNT_PATTERNS },
+    ...(!isWeekend ? [{ label: "입고 완료", patterns: INBOUND_COUNT_PATTERNS }] : []),
     { label: "출고준비", pattern: /차량\s*출고\s*준비\s*[-:：]?\s*\d+\s*대/i },
     { label: "탁송 인계", pattern: /금일\s*탁송\s*인계\s*[-:：]?\s*\d+\s*대/i },
     { label: "특이사항", pattern: /특이사항\s*차량\s*(?:총)?\s*\d+\s*대/i },
+    { label: "고객 인입", patterns: CUSTOMER_INBOUND_COUNT_PATTERNS, optional: true },
+    { label: "수출업자 방문", patterns: EXPORTER_VISIT_COUNT_PATTERNS, optional: true },
   ];
   return checks
+    .filter((check) => !check.optional)
     .filter((check) => check.patterns ? !matchesAny(text, check.patterns) : !check.pattern?.test(text))
     .map((check) => check.label);
 }
@@ -270,23 +331,40 @@ export function formatDateTime(value: string) {
   }).format(new Date(value));
 }
 
-function summarizeRecords(records: DailyWorkLog[]) {
+function summarizeRecords(records: DailyWorkLog[]): WeeklyReportTotals {
   return records.reduce(
     (summary, record) => ({
       inbound: summary.inbound + (Number(record.dailyInboundCount) || 0),
-      ready: summary.ready + record.dailyReadyCount,
-      special: summary.special + record.specialReadyCount,
-      handover: summary.handover + record.dailyTransportHandOverCount,
+      ready: summary.ready + (Number(record.dailyReadyCount) || 0),
+      special: summary.special + (Number(record.specialReadyCount) || 0),
+      handover: summary.handover + (Number(record.dailyTransportHandOverCount) || 0),
+      customerInbound: summary.customerInbound + (Number(record.customerInboundCount) || 0),
+      exporterVisit: summary.exporterVisit + (Number(record.exporterVisitCount) || 0),
     }),
-    { inbound: 0, ready: 0, special: 0, handover: 0 },
+    emptyTotals(),
   );
 }
 
 function comparisonText(current: number, previous: number, enabled: boolean, unit: string) {
   if (!enabled) return "";
   const difference = current - previous;
-  if (difference === 0) return " 전 주와 동일";
-  return ` 전 주 대비 ${Math.abs(difference)}${unit} ${difference > 0 ? "상승" : "감소"}`;
+  if (difference === 0) return ` 전 주 대비 0${unit} 증가/감소 없음`;
+  return ` 전 주 대비 ${Math.abs(difference)}${unit} ${difference > 0 ? "증가" : "감소"}`;
+}
+
+function addTotals(base: WeeklyReportTotals, adjustment: WeeklyManualAdjustment): WeeklyReportTotals {
+  return {
+    inbound: base.inbound + (Number(adjustment.inbound) || 0),
+    ready: base.ready + (Number(adjustment.ready) || 0),
+    special: base.special + (Number(adjustment.special) || 0),
+    handover: base.handover + (Number(adjustment.handover) || 0),
+    customerInbound: base.customerInbound + (Number(adjustment.customerInbound) || 0),
+    exporterVisit: base.exporterVisit + (Number(adjustment.exporterVisit) || 0),
+  };
+}
+
+function emptyTotals(): WeeklyReportTotals {
+  return { inbound: 0, ready: 0, special: 0, handover: 0, customerInbound: 0, exporterVisit: 0 };
 }
 
 function extractCount(text: string, pattern: RegExp) {

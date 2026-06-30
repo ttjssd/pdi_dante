@@ -15,6 +15,20 @@ const modules = [
     href: "/hangdong-guide/contacts",
     tone: "indigo" as const,
   },
+  {
+    title: "정기검사 가이드본",
+    description: "책임보험 가입, 검사대행 요청, 검사비 처리, 완료 공유 절차를 사진 기준으로 확인합니다.",
+    status: "LIVE" as const,
+    href: "/hangdong-guide/inspection-guide",
+    tone: "cyan" as const,
+  },
+  {
+    title: "정기검사 반자동 양식",
+    description: "GPT 추출 텍스트에서 차량번호만 정리하고 차량명·위치를 보완해 3열 시트 행을 생성합니다.",
+    status: "LIVE" as const,
+    href: "/hangdong-guide/inspection-form",
+    tone: "indigo" as const,
+  },
 ];
 
 export default function HangdongGuidePage() {

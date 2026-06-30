@@ -25,7 +25,7 @@ export const categories = [
     tone: "cyan" as Tone,
     title: "항동센터 가이드",
     description: "항동센터에서 자주 발생하는 예외 처리와 운영 프로세스를 정리합니다.",
-    count: 2,
+    count: 4,
   },
   {
     href: "/operations",
@@ -110,9 +110,37 @@ export const toolSearchItems = [
     tone: "indigo" as Tone,
     keywords: ["일일", "업무일지", "주간", "리포트", "회의", "출고준비", "탁송인계", "인사", "연차", "항동"],
   },
+  {
+    title: "정기검사 가이드본",
+    category: "항동센터 가이드",
+    description: "책임보험 가입, 검사대행 요청, 검사비 처리, 완료 공유 절차를 사진 기준으로 확인합니다.",
+    href: "/hangdong-guide/inspection-guide",
+    status: "LIVE" as const,
+    tone: "cyan" as Tone,
+    keywords: ["정기검사", "검사", "책임보험", "보험", "카카오톡", "카톡", "시트", "검사대행", "법인카드", "가이드", "절차"],
+  },
+  {
+    title: "정기검사 반자동 양식",
+    category: "항동센터 가이드",
+    description: "GPT 추출 텍스트에서 차량번호만 자동 정리하고 차량명·위치를 보완해 3열 시트 행을 생성합니다.",
+    href: "/hangdong-guide/inspection-form",
+    status: "LIVE" as const,
+    tone: "cyan" as Tone,
+    keywords: ["정기검사", "검사", "차량번호", "GPT", "OCR", "차량명", "위치", "시트", "양식", "추출"],
+  },
 ];
 
 export const updates: UpdateGroup[] = [
+  {
+    date: "07/01",
+    items: [
+      {
+        version: APP_VERSION,
+        title: "회의록 및 정기검사 업무 업데이트",
+        description: "주간 회의록에 목요일 수기 합산, 고객 인입·수출업자 방문 카운트, 이전 회의록 저장을 추가하고 정기검사 가이드본과 차량번호 반자동 양식을 항동센터 가이드에 분리했습니다.",
+      },
+    ],
+  },
   {
     date: "06/19",
     items: [

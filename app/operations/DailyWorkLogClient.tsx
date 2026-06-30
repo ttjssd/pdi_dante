@@ -10,7 +10,12 @@ import {
   getMeetingPeriod,
   parseDailyWorkLog,
   shiftDate,
+  summarizeWeeklyRecords,
+  WEEKLY_REPORT_STORAGE_KEY,
   type DailyWorkLog,
+  type WeeklyManualAdjustment,
+  type WeeklyReportSnapshot,
+  type WeeklyReportTotals,
 } from "./dailyWorkLog";
 
 const EXAMPLE_TEXT = `[06/09 (화) 항동 - PDI 일일 업무일지]
@@ -21,6 +26,9 @@ const EXAMPLE_TEXT = `[06/09 (화) 항동 - PDI 일일 업무일지]
   (준비 중, 특이사항 차량 총 3대)
 
 • 금일 탁송 인계 - 11대
+
+• 고객 인입 - 2건
+• 수출업자 방문 - 1건
 
 • 항동 관리 업무
   ○ 재고 실사 진행
@@ -37,12 +45,16 @@ export default function DailyWorkLogClient() {
   const [message, setMessage] = useState("");
   const [period, setPeriod] = useState(() => getMeetingPeriod());
   const [weeklyReport, setWeeklyReport] = useState("");
+  const [weeklySnapshots, setWeeklySnapshots] = useState<WeeklyReportSnapshot[]>([]);
+  const [manualAdjustment, setManualAdjustment] = useState<WeeklyManualAdjustment>({});
   const importInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     try {
       const saved = localStorage.getItem(DAILY_WORK_LOG_STORAGE_KEY);
       if (saved) setRecords(normalizeRecords(JSON.parse(saved)));
+      const savedReports = localStorage.getItem(WEEKLY_REPORT_STORAGE_KEY);
+      if (savedReports) setWeeklySnapshots(normalizeWeeklySnapshots(JSON.parse(savedReports)));
     } catch {
       setMessage("저장된 기록을 불러오지 못했습니다.");
     } finally {
@@ -56,15 +68,33 @@ export default function DailyWorkLogClient() {
     window.dispatchEvent(new Event("pdi-records-updated"));
   }, [loaded, records]);
 
+  useEffect(() => {
+    if (!loaded) return;
+    localStorage.setItem(WEEKLY_REPORT_STORAGE_KEY, JSON.stringify(weeklySnapshots));
+  }, [loaded, weeklySnapshots]);
+
   const currentRecords = useMemo(
     () => filterRecordsByPeriod(records, period.start, period.end),
     [records, period],
+  );
+  const autoCurrentRecords = useMemo(
+    () => currentRecords.filter((record) => record.weekday !== "목"),
+    [currentRecords],
   );
   const previousRecords = useMemo(
     () => filterRecordsByPeriod(records, shiftDate(period.start, -7), shiftDate(period.end, -7)),
     [records, period],
   );
-  const totals = useMemo(() => summarize(currentRecords), [currentRecords]);
+  const previousSnapshot = useMemo(
+    () => findPreviousSnapshot(weeklySnapshots, period.start),
+    [weeklySnapshots, period.start],
+  );
+  const previousTotals = useMemo(
+    () => previousSnapshot?.totals || summarizeWeeklyRecords(previousRecords.filter((record) => record.weekday !== "목")),
+    [previousRecords, previousSnapshot],
+  );
+  const hasPreviousTotals = Boolean(previousSnapshot || previousRecords.length > 0);
+  const totals = useMemo(() => summarizeWeeklyRecords(autoCurrentRecords, manualAdjustment), [autoCurrentRecords, manualAdjustment]);
   const weeklyStatuses = useMemo(
     () => buildWeeklyRecordStatuses(records, period.start, period.end),
     [records, period],
@@ -74,6 +104,7 @@ export default function DailyWorkLogClient() {
     missing: weeklyStatuses.filter((item) => item.state === "missing").length,
     duplicate: weeklyStatuses.filter((item) => item.state === "duplicate").length,
     warning: weeklyStatuses.filter((item) => item.state === "warning").length,
+    manual: weeklyStatuses.filter((item) => item.state === "manual").length,
   }), [weeklyStatuses]);
 
   function registerRecord() {
@@ -123,14 +154,51 @@ export default function DailyWorkLogClient() {
   }
 
   function createWeeklyReport() {
-    setWeeklyReport(generateWeeklyReport(currentRecords, previousRecords, period.start, period.end));
-    setMessage(`${currentRecords.length}개 일일 기록의 핵심 수치를 합산했습니다.`);
+    setWeeklyReport(generateWeeklyReport(autoCurrentRecords, hasPreviousTotals ? previousTotals : null, period.start, period.end, manualAdjustment));
+    setMessage(`${autoCurrentRecords.length}개 일일 기록과 목요일 수기 값을 합산했습니다.`);
   }
 
   async function copyWeeklyReport() {
     if (!weeklyReport) return;
     await navigator.clipboard.writeText(weeklyReport);
     setMessage("주간 리포트를 복사했습니다.");
+  }
+
+  function updateManualAdjustment(key: keyof WeeklyReportTotals, value: string) {
+    const numberValue = Number(value);
+    setManualAdjustment((current) => ({ ...current, [key]: Number.isFinite(numberValue) ? Math.max(0, numberValue) : 0 }));
+  }
+
+  function saveWeeklyReportSnapshot() {
+    const report = weeklyReport || generateWeeklyReport(autoCurrentRecords, hasPreviousTotals ? previousTotals : null, period.start, period.end, manualAdjustment);
+    const now = new Date().toISOString();
+    const snapshot: WeeklyReportSnapshot = {
+      id: `${period.start}_${period.end}`,
+      startDate: period.start,
+      endDate: period.end,
+      totals,
+      report,
+      createdAt: now,
+      updatedAt: now,
+    };
+    setWeeklySnapshots((current) => [
+      snapshot,
+      ...current.filter((item) => item.id !== snapshot.id),
+    ].sort((a, b) => b.endDate.localeCompare(a.endDate)).slice(0, 30));
+    setWeeklyReport(report);
+    setMessage(`${period.start}~${period.end} 회의록을 저장했습니다.`);
+  }
+
+  function loadWeeklyReportSnapshot(snapshot: WeeklyReportSnapshot) {
+    setPeriod({ start: snapshot.startDate, end: snapshot.endDate });
+    setWeeklyReport(snapshot.report);
+    setMessage(`${snapshot.startDate}~${snapshot.endDate} 저장 회의록을 불러왔습니다.`);
+  }
+
+  function deleteWeeklyReportSnapshot(id: string) {
+    if (!window.confirm("저장된 회의록을 삭제할까요?")) return;
+    setWeeklySnapshots((current) => current.filter((item) => item.id !== id));
+    setMessage("저장된 회의록을 삭제했습니다.");
   }
 
   function exportRecords() {
@@ -165,7 +233,7 @@ export default function DailyWorkLogClient() {
     setRecords([]);
     setWeeklyReport("");
     cancelEdit();
-    setMessage("저장된 업무일지를 모두 삭제했습니다.");
+    setMessage("저장된 업무일지를 모두 삭제했습니다. 이전 회의록 저장 기록은 유지했습니다.");
   }
 
   return (
@@ -217,7 +285,8 @@ export default function DailyWorkLogClient() {
                 <strong>{record.date} ({record.weekday})</strong>
                 <span>
                   입고 {record.dailyInboundCount || 0} · 출고 {record.dailyTransportHandOverCount} ·
-                  출고준비 {record.dailyReadyCount} · 특이사항 {record.specialReadyCount}
+                  출고준비 {record.dailyReadyCount} · 특이사항 {record.specialReadyCount} ·
+                  고객 {record.customerInboundCount || 0} · 수출 {record.exporterVisitCount || 0}
                 </span>
                 <small>수정 {formatDateTime(record.updatedAt)}</small>
               </button>
@@ -252,10 +321,11 @@ export default function DailyWorkLogClient() {
               <strong>기록 점검</strong>
               <span>
                 정상 {statusSummary.complete}일 · 미등록 {statusSummary.missing}일 ·
-                중복 {statusSummary.duplicate}일 · 추출 확인 {statusSummary.warning}일
+                중복 {statusSummary.duplicate}일 · 추출 확인 {statusSummary.warning}일 ·
+                수기 {statusSummary.manual}일
               </span>
             </div>
-            <small>오늘 이후 날짜는 누락에서 제외됩니다.</small>
+            <small>토·일 입고 0건과 목요일 수기 확인 칸은 추출 확인에서 제외됩니다.</small>
           </div>
         </div>
 
@@ -271,9 +341,12 @@ export default function DailyWorkLogClient() {
                 <p>
                   입고 {item.records.reduce((sum, record) => sum + (record.dailyInboundCount || 0), 0)} ·
                   출고 {item.records.reduce((sum, record) => sum + record.dailyTransportHandOverCount, 0)} ·
-                  준비 {item.records.reduce((sum, record) => sum + record.dailyReadyCount, 0)}
+                  준비 {item.records.reduce((sum, record) => sum + record.dailyReadyCount, 0)} ·
+                  고객 {item.records.reduce((sum, record) => sum + (record.customerInboundCount || 0), 0)} ·
+                  수출 {item.records.reduce((sum, record) => sum + (record.exporterVisitCount || 0), 0)}
                 </p>
               )}
+              {item.note && <small>{item.note}</small>}
               {item.warnings.length > 0 && <small>확인: {item.warnings.join(", ")}</small>}
               {item.records.length > 0 && (
                 <button type="button" onClick={() => loadRecord(item.records[0])}>
@@ -289,6 +362,23 @@ export default function DailyWorkLogClient() {
           <Metric label="출고 완료" value={totals.handover} />
           <Metric label="출고준비 완료" value={totals.ready} />
           <Metric label="특이사항 차량" value={totals.special} />
+          <Metric label="고객 인입" value={totals.customerInbound} unit="건" />
+          <Metric label="수출업자 방문" value={totals.exporterVisit} unit="건" />
+        </div>
+
+        <div className="weekly-thursday-panel">
+          <div>
+            <strong>목요일 수기 확인 값</strong>
+            <p>목요일 오후 회의 전에 직접 확인한 숫자를 입력하면 금~수 자동 합계에 더해집니다.</p>
+          </div>
+          <div className="weekly-thursday-grid">
+            <ManualMetric label="입고" value={manualAdjustment.inbound || 0} onChange={(value) => updateManualAdjustment("inbound", value)} />
+            <ManualMetric label="출고" value={manualAdjustment.handover || 0} onChange={(value) => updateManualAdjustment("handover", value)} />
+            <ManualMetric label="출고준비" value={manualAdjustment.ready || 0} onChange={(value) => updateManualAdjustment("ready", value)} />
+            <ManualMetric label="특이사항" value={manualAdjustment.special || 0} onChange={(value) => updateManualAdjustment("special", value)} />
+            <ManualMetric label="고객 인입" value={manualAdjustment.customerInbound || 0} onChange={(value) => updateManualAdjustment("customerInbound", value)} />
+            <ManualMetric label="수출업자 방문" value={manualAdjustment.exporterVisit || 0} onChange={(value) => updateManualAdjustment("exporterVisit", value)} />
+          </div>
         </div>
 
         <div className="weekly-report-heading">
@@ -299,6 +389,7 @@ export default function DailyWorkLogClient() {
           <div className="daily-log-actions">
             <button className="platform-button button-primary" type="button" onClick={createWeeklyReport}>리포트 작성</button>
             <button className="platform-button button-outline" type="button" onClick={copyWeeklyReport} disabled={!weeklyReport}>전체 복사</button>
+            <button className="platform-button button-outline" type="button" onClick={saveWeeklyReportSnapshot}>회의록 저장</button>
           </div>
         </div>
         <textarea
@@ -307,6 +398,31 @@ export default function DailyWorkLogClient() {
           onChange={(event) => setWeeklyReport(event.target.value)}
           placeholder="기간 내 등록된 업무일지를 기준으로 입고·출고·출고준비·특이사항 수치를 작성합니다."
         />
+
+        <div className="weekly-snapshot-panel">
+          <div className="weekly-report-heading">
+            <div>
+              <strong>이전 회의록 저장 기록</strong>
+              <span>저번 주 대비 0대 증가/감소까지 확인할 수 있도록 회의록 합계와 본문을 보관합니다.</span>
+            </div>
+          </div>
+          <div className="weekly-snapshot-list">
+            {weeklySnapshots.map((snapshot) => (
+              <article key={snapshot.id}>
+                <button type="button" onClick={() => loadWeeklyReportSnapshot(snapshot)}>
+                  <strong>{formatCoverageDate(snapshot.startDate)} - {formatCoverageDate(snapshot.endDate)}</strong>
+                  <span>
+                    입고 {snapshot.totals.inbound} · 출고 {snapshot.totals.handover} · 준비 {snapshot.totals.ready} ·
+                    고객 {snapshot.totals.customerInbound} · 수출 {snapshot.totals.exporterVisit}
+                  </span>
+                  <small>저장 {formatDateTime(snapshot.updatedAt)}</small>
+                </button>
+                <button className="record-delete-button" type="button" onClick={() => deleteWeeklyReportSnapshot(snapshot.id)}>삭제</button>
+              </article>
+            ))}
+            {weeklySnapshots.length === 0 && <div className="private-empty-state">저장된 이전 회의록이 없습니다.</div>}
+          </div>
+        </div>
       </section>
 
       {message && <div className="daily-log-toast" role="status">{message}</div>}
@@ -314,17 +430,27 @@ export default function DailyWorkLogClient() {
   );
 }
 
-function Metric({ label, value }: { label: string; value: number }) {
-  return <article><span>{label}</span><strong>{value}<small>대</small></strong></article>;
+function Metric({ label, value, unit = "대" }: { label: string; value: number; unit?: string }) {
+  return <article><span>{label}</span><strong>{value}<small>{unit}</small></strong></article>;
 }
 
-function StatusLabel({ state, count }: { state: "complete" | "missing" | "future" | "duplicate" | "warning"; count: number }) {
+function ManualMetric({ label, value, onChange }: { label: string; value: number; onChange: (value: string) => void }) {
+  return (
+    <label>
+      <span>{label}</span>
+      <input type="number" min="0" value={value} onChange={(event) => onChange(event.target.value)} />
+    </label>
+  );
+}
+
+function StatusLabel({ state, count }: { state: "complete" | "missing" | "future" | "duplicate" | "warning" | "manual"; count: number }) {
   const labels = {
     complete: "등록 완료",
     missing: "미등록",
     future: "예정",
     duplicate: `중복 ${count}건`,
     warning: "추출 확인",
+    manual: "수기 확인",
   };
   return <em>{labels[state]}</em>;
 }
@@ -335,20 +461,41 @@ function formatCoverageDate(date: string) {
 }
 
 function summarize(records: DailyWorkLog[]) {
-  return records.reduce(
-    (summary, record) => ({
-      inbound: summary.inbound + (Number(record.dailyInboundCount) || 0),
-      handover: summary.handover + (Number(record.dailyTransportHandOverCount) || 0),
-      ready: summary.ready + (Number(record.dailyReadyCount) || 0),
-      special: summary.special + (Number(record.specialReadyCount) || 0),
-    }),
-    { inbound: 0, handover: 0, ready: 0, special: 0 },
-  );
+  return summarizeWeeklyRecords(records);
 }
 
 function normalizeRecords(value: unknown): DailyWorkLog[] {
   if (!Array.isArray(value)) return [];
   return value
     .filter((record): record is DailyWorkLog => Boolean(record && typeof record === "object" && "id" in record && "date" in record))
-    .map((record) => ({ ...record, dailyInboundCount: Number(record.dailyInboundCount) || 0 }));
+    .map((record) => ({
+      ...record,
+      dailyInboundCount: Number(record.dailyInboundCount) || 0,
+      customerInboundCount: Number(record.customerInboundCount) || 0,
+      exporterVisitCount: Number(record.exporterVisitCount) || 0,
+    }));
+}
+
+function normalizeWeeklySnapshots(value: unknown): WeeklyReportSnapshot[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .filter((snapshot): snapshot is WeeklyReportSnapshot => Boolean(snapshot && typeof snapshot === "object" && "id" in snapshot && "totals" in snapshot))
+    .map((snapshot) => ({
+      ...snapshot,
+      totals: {
+        inbound: Number(snapshot.totals?.inbound) || 0,
+        ready: Number(snapshot.totals?.ready) || 0,
+        special: Number(snapshot.totals?.special) || 0,
+        handover: Number(snapshot.totals?.handover) || 0,
+        customerInbound: Number(snapshot.totals?.customerInbound) || 0,
+        exporterVisit: Number(snapshot.totals?.exporterVisit) || 0,
+      },
+    }))
+    .sort((a, b) => b.endDate.localeCompare(a.endDate));
+}
+
+function findPreviousSnapshot(snapshots: WeeklyReportSnapshot[], startDate: string) {
+  return snapshots
+    .filter((snapshot) => snapshot.endDate < startDate)
+    .sort((a, b) => b.endDate.localeCompare(a.endDate))[0] || null;
 }
