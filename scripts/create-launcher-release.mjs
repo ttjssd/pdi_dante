@@ -47,7 +47,7 @@ const manifest = {
   version,
   minLauncherVersion: "1.0.0",
   releaseDate,
-  notes: ["2.1 회의록 및 정기검사 업무 업데이트"],
+  notes: ["2.1.1 PDI 일정표 추가"],
   packages: {
     windows: {
       url: packageUrl,

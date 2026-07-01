@@ -8861,6 +8861,237 @@ textarea {
   line-height: 1.62;
 }
 
+/* PDI schedule */
+.pdi-schedule-workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  max-width: 1720px;
+  margin: 20px auto 0;
+}
+
+.pdi-schedule-hero-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.pdi-schedule-hero-card h2 {
+  margin: 7px 0 0;
+  color: #fff8de;
+  font-size: 28px;
+}
+
+.pdi-schedule-hero-card p {
+  margin: 6px 0 0;
+  color: #b8cbe0;
+  font-size: 14px;
+}
+
+.pdi-schedule-alert {
+  display: grid;
+  gap: 12px;
+  background:
+    linear-gradient(135deg, rgba(255, 85, 127, 0.13), rgba(255, 213, 90, 0.06)),
+    rgba(4, 10, 16, 0.82);
+  border-color: rgba(255, 85, 127, 0.28);
+}
+
+.pdi-schedule-alert strong {
+  color: #ffb3c6;
+  font-size: 16px;
+}
+
+.pdi-schedule-alert > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pdi-schedule-alert button,
+.pdi-week-controls button,
+.pdi-schedule-list button {
+  min-height: 32px;
+  padding: 0 10px;
+  color: #e5eefc;
+  background: rgba(2, 6, 23, 0.48);
+  border: 1px solid rgba(216, 198, 142, 0.18);
+  border-radius: 9px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.pdi-week-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.pdi-week-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.pdi-week-grid > article {
+  display: grid;
+  align-content: start;
+  gap: 9px;
+  min-height: 220px;
+  padding: 11px;
+  background: rgba(2, 6, 23, 0.44);
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 13px;
+}
+
+.pdi-week-grid > article.is-today {
+  border-color: rgba(0, 223, 242, 0.36);
+  box-shadow: inset 0 0 0 1px rgba(0, 223, 242, 0.08);
+}
+
+.pdi-week-grid > article > div:first-child {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.pdi-week-grid > article > div:first-child span {
+  color: #fff8de;
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.pdi-week-grid > article > div:first-child strong {
+  color: #9fb3c8;
+  font-family: var(--font-console);
+  font-size: 12px;
+}
+
+.pdi-week-grid section {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 8px;
+  padding: 9px;
+  background: rgba(8, 17, 25, 0.72);
+  border: 1px solid rgba(216, 198, 142, 0.13);
+  border-radius: 11px;
+}
+
+.pdi-week-grid section.is-overdue {
+  border-color: rgba(255, 85, 127, 0.32);
+}
+
+.pdi-week-grid section.is-done {
+  opacity: 0.72;
+  border-color: rgba(101, 255, 159, 0.22);
+}
+
+.pdi-week-grid section button {
+  width: 42px;
+  height: 28px;
+  color: #65ff9f;
+  background: rgba(101, 255, 159, 0.08);
+  border: 1px solid rgba(101, 255, 159, 0.18);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 850;
+}
+
+.pdi-week-grid section strong {
+  color: #e5eefc;
+  font-size: 13px;
+}
+
+.pdi-week-grid section p {
+  margin: 4px 0 0;
+  color: #9fb3c8;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.pdi-week-grid section small,
+.pdi-schedule-empty {
+  color: #64748b;
+  font-size: 11px;
+}
+
+.pdi-schedule-form {
+  display: grid;
+  grid-template-columns: minmax(140px, 0.5fr) minmax(220px, 1fr) minmax(160px, 0.7fr);
+  gap: 10px;
+}
+
+.pdi-schedule-form label {
+  display: grid;
+  gap: 6px;
+}
+
+.pdi-schedule-form span {
+  color: #9fb3c8;
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.pdi-schedule-form input,
+.pdi-schedule-form select {
+  min-height: 42px;
+  padding: 0 11px;
+  color: #e5eefc;
+  background: rgba(2, 6, 23, 0.58);
+  border: 1px solid rgba(148, 163, 184, 0.17);
+  border-radius: 10px;
+  font: inherit;
+  outline: none;
+}
+
+.pdi-schedule-form .pdi-schedule-wide {
+  grid-column: 1 / -1;
+}
+
+.pdi-schedule-list > div {
+  display: grid;
+  gap: 8px;
+}
+
+.pdi-schedule-list article {
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr) auto auto;
+  gap: 8px;
+  align-items: center;
+  padding: 10px;
+  background: rgba(2, 6, 23, 0.44);
+  border: 1px solid rgba(216, 198, 142, 0.12);
+  border-radius: 12px;
+}
+
+.pdi-schedule-list article > span {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  color: #00dff2;
+  background: rgba(0, 223, 242, 0.08);
+  border: 1px solid rgba(0, 223, 242, 0.18);
+  border-radius: 10px;
+  font-weight: 900;
+}
+
+.pdi-schedule-list strong {
+  color: #fff8de;
+  font-size: 14px;
+}
+
+.pdi-schedule-list small {
+  display: block;
+  margin-top: 3px;
+  color: #9fb3c8;
+  font-size: 12px;
+}
+
 .daily-log-card {
   position: relative;
   overflow: hidden;
@@ -9532,6 +9763,7 @@ textarea {
   .inspection-workspace,
   .inspection-guide-steps,
   .inspection-manual-grid,
+  .pdi-week-grid,
   .inspection-result-grid {
     grid-template-columns: 1fr;
   }
@@ -9547,6 +9779,14 @@ textarea {
 
   .inspection-form-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .pdi-week-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .pdi-schedule-form {
+    grid-template-columns: 1fr;
   }
 
   .daily-log-workspace {
@@ -9598,6 +9838,20 @@ textarea {
   .inspection-guide-menu-card {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .pdi-schedule-hero-card,
+  .pdi-schedule-list article {
+    align-items: stretch;
+    grid-template-columns: 1fr;
+  }
+
+  .pdi-schedule-hero-card {
+    flex-direction: column;
+  }
+
+  .pdi-week-grid {
+    grid-template-columns: 1fr;
   }
 
   .inspection-vehicle-list em {

@@ -25,7 +25,7 @@ export const categories = [
     tone: "cyan" as Tone,
     title: "항동센터 가이드",
     description: "항동센터에서 자주 발생하는 예외 처리와 운영 프로세스를 정리합니다.",
-    count: 4,
+    count: 5,
   },
   {
     href: "/operations",
@@ -128,14 +128,33 @@ export const toolSearchItems = [
     tone: "cyan" as Tone,
     keywords: ["정기검사", "검사", "차량번호", "GPT", "OCR", "차량명", "위치", "시트", "양식", "추출"],
   },
+  {
+    title: "PDI 일정표",
+    category: "항동센터 가이드",
+    description: "요일별 반복 업무를 등록하고 오늘 할 일, 놓친 일정, 완료 여부를 체크합니다.",
+    href: "/hangdong-guide/pdi-schedule",
+    status: "LIVE" as const,
+    tone: "cyan" as Tone,
+    keywords: ["PDI", "일정", "일정표", "반복", "수요일", "체감온도", "PDF", "업로드", "체크", "알림"],
+  },
 ];
 
 export const updates: UpdateGroup[] = [
   {
-    date: "07/01",
+    date: "07/02",
     items: [
       {
         version: APP_VERSION,
+        title: "PDI 일정표 추가",
+        description: "항동센터 가이드에 요일별 반복 업무 일정표를 추가하고 오늘 일정, 놓친 일정, 완료 체크, 주간 일정 복사 기능을 넣었습니다.",
+      },
+    ],
+  },
+  {
+    date: "07/01",
+    items: [
+      {
+        version: "2.1.0",
         title: "회의록 및 정기검사 업무 업데이트",
         description: "주간 회의록에 목요일 수기 합산, 고객 인입·수출업자 방문 카운트, 이전 회의록 저장을 추가하고 정기검사 가이드본과 차량번호 반자동 양식을 항동센터 가이드에 분리했습니다.",
       },
@@ -145,7 +164,7 @@ export const updates: UpdateGroup[] = [
     date: "06/19",
     items: [
       {
-        version: APP_VERSION,
+        version: "2.0.0",
         title: "2.0 HUD UI 리뉴얼",
         description: "개인 관제센터 느낌의 게임 HUD 테마, 전체 카테고리 오버레이, post-it 전환 애니메이션과 입고 수치 인식을 개선했습니다.",
       },

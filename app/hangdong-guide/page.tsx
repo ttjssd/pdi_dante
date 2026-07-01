@@ -29,6 +29,13 @@ const modules = [
     href: "/hangdong-guide/inspection-form",
     tone: "indigo" as const,
   },
+  {
+    title: "PDI 일정표",
+    description: "요일별 반복 업무를 등록하고 오늘 할 일과 놓친 일정을 체크합니다.",
+    status: "LIVE" as const,
+    href: "/hangdong-guide/pdi-schedule",
+    tone: "cyan" as const,
+  },
 ];
 
 export default function HangdongGuidePage() {
