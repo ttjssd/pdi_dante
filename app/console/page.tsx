@@ -1,4 +1,5 @@
 import { DashboardCard, PlatformHeader, StatCard } from "../components/platform";
+import PdiScheduleSummary from "../components/PdiScheduleSummary";
 import RecentRecordsStat from "../components/RecentRecordsStat";
 import ToolSearch from "../components/ToolSearch";
 import UpdateLog from "../components/UpdateLog";
@@ -30,6 +31,8 @@ export default function PlatformConsole() {
         </section>
 
         <ToolSearch items={toolSearchItems} />
+
+        <PdiScheduleSummary />
 
         <section className="platform-section">
           <div className="platform-section-heading">

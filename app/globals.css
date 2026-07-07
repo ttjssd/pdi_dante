@@ -7383,6 +7383,20 @@ body {
   line-height: 1.6;
 }
 
+.hangdong-reference-card pre {
+  margin: 0;
+  padding: 14px;
+  overflow-x: auto;
+  color: #fff8de;
+  background: rgba(2, 6, 12, 0.55);
+  border: 1px solid rgba(216, 198, 142, 0.18);
+  border-radius: 14px;
+  font-family: var(--font-console);
+  font-size: 13px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+}
+
 .hangdong-reference-card a {
   display: inline-flex;
   align-items: center;
@@ -9092,6 +9106,158 @@ textarea {
   font-size: 12px;
 }
 
+/* Main console schedule */
+.console-schedule-section {
+  margin-top: 22px;
+}
+
+.console-schedule-panel {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  overflow: hidden;
+  background:
+    linear-gradient(135deg, rgba(0, 223, 242, 0.08), transparent 36%),
+    rgba(4, 10, 16, 0.72);
+  border: 1px solid rgba(216, 198, 142, 0.16);
+  border-radius: 24px;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.26);
+}
+
+.console-schedule-today {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px;
+  background: rgba(255, 248, 222, 0.035);
+  border: 1px solid rgba(216, 198, 142, 0.12);
+  border-radius: 18px;
+}
+
+.console-schedule-today span,
+.console-schedule-week article > div span {
+  color: #00dff2;
+  font-family: var(--font-console);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.console-schedule-today strong {
+  display: block;
+  margin-top: 4px;
+  color: #fff8de;
+  font-size: clamp(18px, 2vw, 24px);
+}
+
+.console-schedule-today p {
+  margin: 6px 0 0;
+  color: #b8cbe0;
+  font-size: 14px;
+}
+
+.console-schedule-alert {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background: rgba(255, 85, 127, 0.08);
+  border: 1px solid rgba(255, 85, 127, 0.22);
+  border-radius: 16px;
+}
+
+.console-schedule-alert strong {
+  color: #ff9ab2;
+  font-size: 14px;
+}
+
+.console-schedule-alert > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.console-schedule-alert button {
+  padding: 8px 10px;
+  color: #ffe8ef;
+  background: rgba(255, 85, 127, 0.12);
+  border: 1px solid rgba(255, 85, 127, 0.2);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.console-schedule-week {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.console-schedule-week article {
+  display: grid;
+  gap: 10px;
+  min-height: 130px;
+  padding: 12px;
+  background: rgba(3, 7, 13, 0.5);
+  border: 1px solid rgba(159, 179, 200, 0.13);
+  border-radius: 16px;
+}
+
+.console-schedule-week article.is-today {
+  background: rgba(0, 223, 242, 0.075);
+  border-color: rgba(0, 223, 242, 0.26);
+  box-shadow: inset 0 0 0 1px rgba(255, 248, 222, 0.04);
+}
+
+.console-schedule-week article > div strong {
+  display: block;
+  margin-top: 3px;
+  color: #fff8de;
+  font-family: var(--font-console);
+  font-size: 17px;
+}
+
+.console-schedule-week button {
+  display: grid;
+  gap: 5px;
+  width: 100%;
+  padding: 9px;
+  text-align: left;
+  background: rgba(8, 17, 25, 0.72);
+  border: 1px solid rgba(216, 198, 142, 0.12);
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.console-schedule-week button b {
+  color: #ffd55a;
+  font-family: var(--font-console);
+  font-size: 10px;
+}
+
+.console-schedule-week button span {
+  color: #dce8f5;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.console-schedule-week button.is-done {
+  opacity: 0.68;
+  background: rgba(101, 255, 159, 0.08);
+  border-color: rgba(101, 255, 159, 0.18);
+}
+
+.console-schedule-week button.is-done b {
+  color: #65ff9f;
+}
+
+.console-schedule-week p {
+  margin: 0;
+  color: #69788c;
+  font-size: 12px;
+}
+
 .daily-log-card {
   position: relative;
   overflow: hidden;
@@ -9848,6 +10014,16 @@ textarea {
 
   .pdi-schedule-hero-card {
     flex-direction: column;
+  }
+
+  .console-schedule-today,
+  .console-schedule-alert {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .console-schedule-week {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .pdi-week-grid {

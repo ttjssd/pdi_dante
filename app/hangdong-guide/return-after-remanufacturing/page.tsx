@@ -1,10 +1,11 @@
 import { BackButton, Breadcrumb, PlatformHeader } from "../../components/platform";
 
-const references = [
-  { label: "입고차량 중 상품화 누락 후 복귀차량 스레드 1", href: "#" },
-  { label: "입고차량 중 상품화 누락 후 복귀차량 스레드 2", href: "#" },
-  { label: "판매보류 스레드", href: "#" },
-];
+const slackTemplate = `@andy
+앤디, 안녕하세요.
+위 차량 항동 입고 되었습니다.
+
+
+광고중 변경 부탁드립니다.`;
 
 export default function ReturnAfterRemanufacturingGuidePage() {
   return (
@@ -46,30 +47,24 @@ export default function ReturnAfterRemanufacturingGuidePage() {
               </ul>
             </article>
             <article>
-              <b>판덴팀 참고 내용</b>
+              <b>처리 기준</b>
               <ul>
                 <li>공정 상세기록은 반영 가능</li>
                 <li>판매과정 task 변경은 "판매보류 → 광고 중" 변경 같은 형태로 처리 필요</li>
+                <li>항동 입고 확인 후 아래 양식으로 앤디에게 광고중 변경을 요청한다.</li>
               </ul>
             </article>
           </div>
 
           <div className="hangdong-reference-card">
-            <strong>관련 참고 링크</strong>
-            <p>추후 Notion 또는 내부 문서 링크를 연결할 수 있도록 슬롯만 준비했습니다.</p>
-            <div>
-              {references.map((reference) => (
-                <a key={reference.label} href={reference.href} aria-disabled="true">
-                  {reference.label}
-                  <small>링크 준비중</small>
-                </a>
-              ))}
-            </div>
+            <strong>슬랙 공유 양식</strong>
+            <p>슬랙 프로필 링크는 넣지 않고 멘션 텍스트만 사용합니다. 차량이 항동에 입고된 것을 확인한 뒤 아래 문구로 광고중 변경을 요청합니다.</p>
+            <pre>{slackTemplate}</pre>
           </div>
 
           <div className="hangdong-callout">
             <b>주의</b>
-            <p>정확한 처리 전에는 관련 스레드와 담당자 확인 후 진행합니다.</p>
+            <p>입고 여부가 불확실한 상태에서는 광고중 변경 요청을 먼저 보내지 않고, 항동 입고 확인 후 진행합니다.</p>
           </div>
         </section>
       </div>

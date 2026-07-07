@@ -112,12 +112,21 @@ async function main() {
   const noLauncherBackLink = await evaluate('!document.body.innerText.includes("런처로 돌아가기")');
   const hasHangdongCard = await evaluate('document.body.innerText.includes("항동센터 가이드")');
   const hasOperationsCard = await evaluate('document.body.innerText.includes("업무일지 / 주간 리포트")');
+  const consoleScheduleReady = await evaluate(
+    'document.body.innerText.includes("PDI 일정표") && document.body.innerText.includes("오늘 일정") && document.body.innerText.includes("체감온도측정기 PDF 파일 업로드")',
+  );
 
   await send("Page.navigate", { url: "http://127.0.0.1:3187/hangdong-guide" });
   await delay(900);
   const hangdongPath = await evaluate("location.pathname");
   const hangdongReady = await evaluate(
     'document.body.innerText.includes("항동센터 가이드") && document.body.innerText.includes("입고 차량 중 상품화 누락 후 복귀차량") && document.body.innerText.includes("연락처 모음")',
+  );
+  await send("Page.navigate", { url: "http://127.0.0.1:3187/hangdong-guide/return-after-remanufacturing" });
+  await delay(700);
+  const returnGuidePath = await evaluate("location.pathname");
+  const returnGuideReady = await evaluate(
+    'document.body.innerText.includes("슬랙 공유 양식") && document.body.innerText.includes("@andy") && document.body.innerText.includes("광고중 변경 부탁드립니다.")',
   );
   await send("Page.navigate", { url: "http://127.0.0.1:3187/hangdong-guide/contacts" });
   await delay(700);
@@ -221,6 +230,20 @@ async function main() {
   const codeCutRecommended = await evaluate(
     'document.body.innerText.includes("타이어 코드절상 / 재고 없음 / M2 입고 안내") && document.body.innerText.includes("M2 입고 진행하겠습니다")',
   );
+  await evaluate(`(() => {
+    const textarea = document.querySelector("textarea");
+    const setter = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value").set;
+    setter.call(textarea, "[261무7835] M2 견인 필요합니다. 입고 시 C구역 C47~C49 주차 안내 필요");
+    textarea.dispatchEvent(new Event("input", { bubbles: true }));
+  })()`);
+  await delay(100);
+  await evaluate(
+    'Array.from(document.querySelectorAll("button")).find((button) => button.textContent.includes("이슈 분석하기"))?.click()',
+  );
+  await delay(300);
+  const m2TowingRecommended = await evaluate(
+    'document.body.innerText.includes("M2 견인 요청 / C구역 주차 안내") && document.body.innerText.includes("@김요한 @손인환 @김승현 cc. @knox @hardy") && document.body.innerText.includes("C구역 C47~C49")',
+  );
 
   const result = {
     initialPath,
@@ -237,8 +260,11 @@ async function main() {
     noLauncherBackLink,
     hasHangdongCard,
     hasOperationsCard,
+    consoleScheduleReady,
     hangdongPath,
     hangdongReady,
+    returnGuidePath,
+    returnGuideReady,
     contactsPath,
     contactsReady,
     contactManagementReady,
@@ -249,11 +275,12 @@ async function main() {
     operationsParsed,
     weeklyCoverageReady,
     codeCutRecommended,
+    m2TowingRecommended,
   };
   console.log(JSON.stringify(result, null, 2));
 
   const failed = Object.entries(result).filter(([key, value]) => {
-    if (["initialPath", "consolePath", "hangdongPath", "contactsPath", "operationsPath"].includes(key)) return false;
+    if (["initialPath", "consolePath", "hangdongPath", "returnGuidePath", "contactsPath", "operationsPath"].includes(key)) return false;
     if (key === "launcherEntryStructure") return false;
     return value !== true;
   });
@@ -262,6 +289,7 @@ async function main() {
     result.consolePath !== "/console" ||
     result.hangdongPath !== "/hangdong-guide" ||
     result.contactsPath !== "/hangdong-guide/contacts" ||
+    result.returnGuidePath !== "/hangdong-guide/return-after-remanufacturing" ||
     result.operationsPath !== "/operations" ||
     failed.length
   ) {
@@ -272,6 +300,7 @@ async function main() {
           initialPath: result.initialPath,
           consolePath: result.consolePath,
           hangdongPath: result.hangdongPath,
+          returnGuidePath: result.returnGuidePath,
           contactsPath: result.contactsPath,
           operationsPath: result.operationsPath,
         },

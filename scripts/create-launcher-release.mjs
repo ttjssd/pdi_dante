@@ -47,7 +47,7 @@ const manifest = {
   version,
   minLauncherVersion: "1.0.0",
   releaseDate,
-  notes: ["2.1.1 PDI 일정표 추가"],
+  notes: ["2.1.2 메인 일정표, 견인 프로세스, 항동 복귀차량 양식, 제주 담당자 업데이트"],
   packages: {
     windows: {
       url: packageUrl,

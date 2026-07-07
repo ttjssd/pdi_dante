@@ -141,10 +141,20 @@ export const toolSearchItems = [
 
 export const updates: UpdateGroup[] = [
   {
-    date: "07/02",
+    date: "07/07",
     items: [
       {
         version: APP_VERSION,
+        title: "운영 프로세스 및 메인 일정표 업데이트",
+        description: "메인 화면에 PDI 일정표를 노출하고 제주도 담당자, M2 견인 요청 양식, 상품화 누락 후 복귀차량 광고중 변경 양식을 최신화했습니다.",
+      },
+    ],
+  },
+  {
+    date: "07/02",
+    items: [
+      {
+        version: "2.1.1",
         title: "PDI 일정표 추가",
         description: "항동센터 가이드에 요일별 반복 업무 일정표를 추가하고 오늘 일정, 놓친 일정, 완료 체크, 주간 일정 복사 기능을 넣었습니다.",
       },

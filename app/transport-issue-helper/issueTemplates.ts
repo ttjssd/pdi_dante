@@ -113,7 +113,19 @@ export const issueTemplates: TransportIssueTemplate[] = [
     driverReply: "안녕하세요.\n해당 차량 타이어 코드절상 확인되었습니다.\n\n인근 타이어점에는 동일 규격 재고가 없어 현장 교체는 어려울 것 같습니다.\nM2 입고 진행하겠습니다.\n\n안녕하세요 케이든,\n위 차량 황동 인근 타이어점은 재고가 없어 교체가 힘들 것 같습니다.\nM2 입고 진행하겠습니다.",
     internalMessage: "[차량번호] 타이어 코드절상 확인되었습니다.\n인근 타이어점 동일 규격 재고 부재로 현장 교체 어려워 M2 입고 진행 예정입니다.",
     movementGuide: "타이어 코드절상은 안전 이슈가 있으므로 추가 주행은 보류하고, 필요 시 M2 입고 또는 견인/탁송 방향으로 진행합니다.",
-  },  {
+  },
+  {
+    id: "m2-towing",
+    title: "M2 견인 요청 / C구역 주차 안내",
+    risk: "높음",
+    keywords: ["견인", "m2 견인", "m2 입고", "m2", "입고", "주차안내", "주차 안내", "c구역", "c47", "c48", "c49"],
+    checks: ["차량번호 확인", "견인 필요 사유 확인", "현재 차량 위치 확인", "M2 입고 대상 여부 확인", "C구역 C47~C49 주차 안내 필요 여부 확인"],
+    requests: ["차량번호", "견인 요청 사유", "현재 위치", "차량 상태 사진 또는 참고 내용", "M2 입고 시 C구역 C47~C49 주차 가능 여부"],
+    driverReply: "기사님, 해당 차량은 추가 이동을 보류하고 현재 위치 기준으로 대기 부탁드립니다.\n견인 진행 여부 확인 후 안내드리겠습니다.",
+    internalMessage: "@김요한 @손인환 @김승현 cc. @knox @hardy\n매니저님,\n\n위 차량 M2 견인 부탁드려도 될까요?\n\n[사유]\n\n+ M2 입고 시 C구역 C47~C49 구역에 주차안내",
+    movementGuide: "견인 요청 시 차량번호와 사유를 함께 공유하고, M2 입고 차량은 C구역 C47~C49 구역으로 주차 안내합니다.",
+  },
+  {
     id: "tire",
     title: "공기압 경고 / 타이어 이상",
     risk: "주의",
@@ -220,6 +232,18 @@ export function recommendIssue(rawText: string) {
   };
 
   // 안전 관련 유형은 차량번호 확인 등 일반 문의보다 항상 우선합니다.
+  const m2Towing = findTemplate("m2-towing");
+  const m2TowingMatches = findMatches(text, m2Towing.keywords);
+  const hasM2TowContext = text.includes("견인") && (
+    text.includes("m2") ||
+    text.includes("입고") ||
+    text.includes("c구역") ||
+    text.includes("c47") ||
+    text.includes("c48") ||
+    text.includes("c49")
+  );
+  if (hasM2TowContext) return choose("m2-towing", m2TowingMatches.length ? m2TowingMatches : ["견인", "M2"]);
+
   const accident = findTemplate("accident");
   const accidentMatches = findMatches(text, accident.keywords);
   if (accidentMatches.length) return choose("accident", accidentMatches);
