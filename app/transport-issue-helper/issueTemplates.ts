@@ -12,6 +12,13 @@ export type TransportIssueTemplate = {
   movementGuide: string;
 };
 
+export const ACCIDENT_ISSUE_TAGS = "@김요한 @손인환 @김승현";
+export const TRANSPORT_ISSUE_TAGS = "@박은희 @이미혜 cc. @김경민 @김윤선";
+export const M2_TOWING_TAGS = "@김요한 @손인환 @김승현 cc. @knox @hardy";
+
+const accidentIssueIds = new Set(["accident"]);
+const noTagIssueIds = new Set(["m2-towing"]);
+
 export const riskScore: Record<RiskLevel, number> = {
   "낮음": 0,
   "확인 필요": 1,
@@ -122,8 +129,8 @@ export const issueTemplates: TransportIssueTemplate[] = [
     checks: ["차량번호 확인", "견인 필요 사유 확인", "현재 차량 위치 확인", "M2 입고 대상 여부 확인", "C구역 C47~C49 주차 안내 필요 여부 확인"],
     requests: ["차량번호", "견인 요청 사유", "현재 위치", "차량 상태 사진 또는 참고 내용", "M2 입고 시 C구역 C47~C49 주차 가능 여부"],
     driverReply: "기사님, 해당 차량은 추가 이동을 보류하고 현재 위치 기준으로 대기 부탁드립니다.\n견인 진행 여부 확인 후 안내드리겠습니다.",
-    internalMessage: "@김요한 @손인환 @김승현 cc. @knox @hardy\n매니저님,\n\n위 차량 M2 견인 부탁드려도 될까요?\n\n[사유]\n\n+ M2 입고 시 C구역 C47~C49 구역에 주차안내",
-    movementGuide: "견인 요청 시 차량번호와 사유를 함께 공유하고, M2 입고 차량은 C구역 C47~C49 구역으로 주차 안내합니다.",
+    internalMessage: `${M2_TOWING_TAGS}\n매니저님,\n\n위 차량 M2 견인 부탁드려도 될까요?\n\n+ M2 입고 시 C구역 C47~C49 구역에 주차`,
+    movementGuide: "견인 요청 시 차량번호와 M2 견인 요청 양식을 함께 공유하고, M2 입고 차량은 C구역 C47~C49 구역으로 주차 안내합니다.",
   },
   {
     id: "tire",
@@ -329,4 +336,16 @@ export function extractVehicleNumber(rawText: string) {
   const bracketed = rawText.match(/\[([^\]]+)\]/)?.[1]?.trim();
   if (bracketed) return bracketed.replace(/\s+/g, "");
   return rawText.match(/\d{2,3}[가-힣]\d{4}/)?.[0] ?? "";
+}
+
+export function getIssueTagLine(templateId: string) {
+  if (noTagIssueIds.has(templateId)) return "";
+  if (accidentIssueIds.has(templateId)) return ACCIDENT_ISSUE_TAGS;
+  return TRANSPORT_ISSUE_TAGS;
+}
+
+export function buildIssueShareText(template: TransportIssueTemplate, vehicleNumber: string) {
+  const message = template.internalMessage.replaceAll("[차량번호]", vehicleNumber || "[차량번호]");
+  const tagLine = getIssueTagLine(template.id);
+  return tagLine ? `${tagLine}\n${message}` : message;
 }

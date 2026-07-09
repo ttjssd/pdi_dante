@@ -47,7 +47,7 @@ const manifest = {
   version,
   minLauncherVersion: "1.0.0",
   releaseDate,
-  notes: ["2.1.2 메인 일정표, 견인 프로세스, 항동 복귀차량 양식, 제주 담당자 업데이트"],
+  notes: ["2.1.3 탁송 보조툴 리빌딩, 견인 요청 메뉴, 주간 회의록 UI 개선, 런처 백업 최신 1개 유지"],
   packages: {
     windows: {
       url: packageUrl,

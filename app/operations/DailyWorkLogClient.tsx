@@ -297,7 +297,7 @@ export default function DailyWorkLogClient() {
         </div>
       </section>
 
-      <section className="daily-log-card daily-log-weekly-card">
+      <section className="daily-log-card daily-log-weekly-card weekly-command-card">
         <div className="daily-log-section-heading">
           <span>03</span>
           <div>
@@ -329,6 +329,12 @@ export default function DailyWorkLogClient() {
           </div>
         </div>
 
+        <div className="weekly-panel-title">
+          <div>
+            <strong>요일별 기록 상태</strong>
+            <span>금~수는 자동 추출, 목요일은 수기 합산 기준으로 확인합니다.</span>
+          </div>
+        </div>
         <div className="weekly-coverage-grid">
           {weeklyStatuses.map((item) => (
             <article className={`coverage-${item.state}`} key={item.date}>
@@ -357,27 +363,37 @@ export default function DailyWorkLogClient() {
           ))}
         </div>
 
-        <div className="weekly-metric-grid">
-          <Metric label="금주 입고 완료" value={totals.inbound} />
-          <Metric label="출고 완료" value={totals.handover} />
-          <Metric label="출고준비 완료" value={totals.ready} />
-          <Metric label="특이사항 차량" value={totals.special} />
-          <Metric label="고객 인입" value={totals.customerInbound} unit="건" />
-          <Metric label="수출업자 방문" value={totals.exporterVisit} unit="건" />
-        </div>
-
-        <div className="weekly-thursday-panel">
-          <div>
-            <strong>목요일 수기 확인 값</strong>
-            <p>목요일 오후 회의 전에 직접 확인한 숫자를 입력하면 금~수 자동 합계에 더해집니다.</p>
+        <div className="weekly-briefing-grid">
+          <div className="weekly-metrics-panel">
+            <div className="weekly-panel-title">
+              <div>
+                <strong>주간 합산 HUD</strong>
+                <span>리포트에 들어갈 핵심 숫자만 크게 표시합니다.</span>
+              </div>
+            </div>
+            <div className="weekly-metric-grid">
+              <Metric label="금주 입고 완료" value={totals.inbound} />
+              <Metric label="출고 완료" value={totals.handover} />
+              <Metric label="출고준비 완료" value={totals.ready} />
+              <Metric label="특이사항 차량" value={totals.special} />
+              <Metric label="고객 인입" value={totals.customerInbound} unit="건" />
+              <Metric label="수출업자 방문" value={totals.exporterVisit} unit="건" />
+            </div>
           </div>
-          <div className="weekly-thursday-grid">
-            <ManualMetric label="입고" value={manualAdjustment.inbound || 0} onChange={(value) => updateManualAdjustment("inbound", value)} />
-            <ManualMetric label="출고" value={manualAdjustment.handover || 0} onChange={(value) => updateManualAdjustment("handover", value)} />
-            <ManualMetric label="출고준비" value={manualAdjustment.ready || 0} onChange={(value) => updateManualAdjustment("ready", value)} />
-            <ManualMetric label="특이사항" value={manualAdjustment.special || 0} onChange={(value) => updateManualAdjustment("special", value)} />
-            <ManualMetric label="고객 인입" value={manualAdjustment.customerInbound || 0} onChange={(value) => updateManualAdjustment("customerInbound", value)} />
-            <ManualMetric label="수출업자 방문" value={manualAdjustment.exporterVisit || 0} onChange={(value) => updateManualAdjustment("exporterVisit", value)} />
+
+          <div className="weekly-thursday-panel">
+            <div>
+              <strong>목요일 수기 확인 값</strong>
+              <p>목요일 오후 회의 전에 직접 확인한 숫자를 입력하면 금~수 자동 합계에 더해집니다.</p>
+            </div>
+            <div className="weekly-thursday-grid">
+              <ManualMetric label="입고" value={manualAdjustment.inbound || 0} onChange={(value) => updateManualAdjustment("inbound", value)} />
+              <ManualMetric label="출고" value={manualAdjustment.handover || 0} onChange={(value) => updateManualAdjustment("handover", value)} />
+              <ManualMetric label="출고준비" value={manualAdjustment.ready || 0} onChange={(value) => updateManualAdjustment("ready", value)} />
+              <ManualMetric label="특이사항" value={manualAdjustment.special || 0} onChange={(value) => updateManualAdjustment("special", value)} />
+              <ManualMetric label="고객 인입" value={manualAdjustment.customerInbound || 0} onChange={(value) => updateManualAdjustment("customerInbound", value)} />
+              <ManualMetric label="수출업자 방문" value={manualAdjustment.exporterVisit || 0} onChange={(value) => updateManualAdjustment("exporterVisit", value)} />
+            </div>
           </div>
         </div>
 

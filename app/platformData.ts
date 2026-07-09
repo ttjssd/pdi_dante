@@ -17,7 +17,7 @@ export const categories = [
     tone: "purple" as Tone,
     title: "탁송 보조 툴",
     description: "탁송 중 발생하는 이슈 응답과 제주도 탁송 신청 문구 생성을 보조합니다.",
-    count: 2,
+    count: 3,
   },
   {
     href: "/hangdong-guide",
@@ -75,13 +75,22 @@ export const toolSearchItems = [
     keywords: ["탁송", "기사", "이슈", "타이어", "사고", "견인", "시동", "방전", "경고등", "고객", "출발지", "도착지", "차번호"],
   },
   {
+    title: "탁송 중 견인",
+    category: "탁송 보조 툴",
+    description: "M2 견인 요청 시 매니저에게 보내는 양식을 바로 복사합니다.",
+    href: "/transport-tools/towing-request",
+    status: "LIVE" as const,
+    tone: "purple" as Tone,
+    keywords: ["탁송", "견인", "M2", "C구역", "C47", "C48", "C49", "김요한", "손인환", "김승현", "knox", "hardy"],
+  },
+  {
     title: "제주도 탁송 요청 문구 생성",
     category: "탁송 보조 툴",
     description: "제주도 탁송 신청용 슬랙 요청 문구를 생성합니다.",
     href: "/transport-tools/jeju-request",
     status: "LIVE" as const,
     tone: "purple" as Tone,
-    keywords: ["제주", "제주도", "탁송", "김경민", "선적", "오더", "도착일", "요청"],
+    keywords: ["제주", "제주도", "탁송", "고재현", "김경민", "선적", "오더", "도착일", "요청"],
   },
   {
     title: "입고 차량 중 상품화 누락 후 복귀차량",
@@ -141,10 +150,20 @@ export const toolSearchItems = [
 
 export const updates: UpdateGroup[] = [
   {
-    date: "07/07",
+    date: "07/09",
     items: [
       {
         version: APP_VERSION,
+        title: "탁송·회의록 UI 및 런처 백업 정책 업데이트",
+        description: "탁송 보조툴을 카드형으로 리빌딩하고 견인 요청 메뉴를 분리했으며, 주간 회의록 작성 화면 시인성과 런처 백업 최신 1개 유지 정책을 적용했습니다.",
+      },
+    ],
+  },
+  {
+    date: "07/07",
+    items: [
+      {
+        version: "2.1.2",
         title: "운영 프로세스 및 메인 일정표 업데이트",
         description: "메인 화면에 PDI 일정표를 노출하고 제주도 담당자, M2 견인 요청 양식, 상품화 누락 후 복귀차량 광고중 변경 양식을 최신화했습니다.",
       },

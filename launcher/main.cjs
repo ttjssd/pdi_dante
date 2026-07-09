@@ -100,6 +100,50 @@ function writeJson(filePath, value) {
   fs.writeFileSync(filePath, `${JSON.stringify(value, null, 2)}\n`, "utf8");
 }
 
+function isPathInsideDirectory(candidate, directory) {
+  const relative = path.relative(directory, candidate);
+  return Boolean(relative) && !relative.startsWith("..") && !path.isAbsolute(relative);
+}
+
+function pruneBackupDirectories({ keepPath = null, keepLatest = 1 } = {}) {
+  const paths = ensureDirectories();
+  const backupsRoot = path.resolve(paths.backups);
+  if (!fs.existsSync(backupsRoot)) return;
+
+  const keepResolved = keepPath ? path.resolve(keepPath) : null;
+  const keepSet = new Set();
+  const backupDirectories = fs.readdirSync(backupsRoot, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => {
+      const fullPath = path.resolve(backupsRoot, entry.name);
+      return {
+        fullPath,
+        mtimeMs: fs.statSync(fullPath).mtimeMs,
+      };
+    })
+    .filter((item) => isPathInsideDirectory(item.fullPath, backupsRoot))
+    .sort((left, right) => right.mtimeMs - left.mtimeMs);
+
+  if (keepResolved && isPathInsideDirectory(keepResolved, backupsRoot) && fs.existsSync(keepResolved)) {
+    keepSet.add(keepResolved);
+  }
+
+  for (const item of backupDirectories) {
+    if (keepSet.size >= keepLatest) break;
+    keepSet.add(item.fullPath);
+  }
+
+  for (const item of backupDirectories) {
+    if (keepSet.has(item.fullPath)) continue;
+    try {
+      fs.rmSync(item.fullPath, { recursive: true, force: true });
+      log(`old backup removed: ${item.fullPath}`);
+    } catch (error) {
+      log(`old backup remove failed: ${item.fullPath} / ${error.message}`);
+    }
+  }
+}
+
 function loadSettings() {
   const paths = ensureDirectories();
   const stored = readJson(paths.settings);
@@ -388,6 +432,7 @@ async function applyUpdate() {
     fs.rmSync(paths.transaction, { force: true });
     fs.rmSync(extractPath, { recursive: true, force: true });
     fs.rmSync(packagePath, { force: true });
+    pruneBackupDirectories({ keepPath: backupPath, keepLatest: 1 });
 
     log(`app ${local.version} -> ${manifest.version} applied`);
     sendState({
@@ -580,6 +625,7 @@ function resetBackground() {
 
 async function createWindow() {
   recoverInterruptedUpdate();
+  pruneBackupDirectories({ keepLatest: 1 });
   loadSettings();
   const local = getLocalVersion();
   state.currentVersion = local.version;

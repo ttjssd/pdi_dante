@@ -230,6 +230,13 @@ async function main() {
   const codeCutRecommended = await evaluate(
     'document.body.innerText.includes("타이어 코드절상 / 재고 없음 / M2 입고 안내") && document.body.innerText.includes("M2 입고 진행하겠습니다")',
   );
+  await send("Page.navigate", { url: "http://127.0.0.1:3187/transport-tools/towing-request" });
+  await delay(700);
+  const towingRequestReady = await evaluate(
+    'document.body.innerText.includes("탁송 중 견인") && document.body.innerText.includes("보내는 양식") && document.body.innerText.includes("@김요한 @손인환 @김승현 cc. @knox @hardy") && document.body.innerText.includes("+ M2 입고 시 C구역 C47~C49 구역에 주차")',
+  );
+  await send("Page.navigate", { url: "http://127.0.0.1:3187/transport-tools/issue-helper" });
+  await delay(700);
   await evaluate(`(() => {
     const textarea = document.querySelector("textarea");
     const setter = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value").set;
@@ -242,7 +249,7 @@ async function main() {
   );
   await delay(300);
   const m2TowingRecommended = await evaluate(
-    'document.body.innerText.includes("M2 견인 요청 / C구역 주차 안내") && document.body.innerText.includes("@김요한 @손인환 @김승현 cc. @knox @hardy") && document.body.innerText.includes("C구역 C47~C49")',
+    'document.body.innerText.includes("M2 견인 요청 / C구역 주차 안내") && document.body.innerText.includes("보내는 양식") && document.body.innerText.includes("@김요한 @손인환 @김승현 cc. @knox @hardy") && document.body.innerText.includes("+ M2 입고 시 C구역 C47~C49 구역에 주차") && !document.body.innerText.includes("[사유]")',
   );
 
   const result = {
@@ -275,6 +282,7 @@ async function main() {
     operationsParsed,
     weeklyCoverageReady,
     codeCutRecommended,
+    towingRequestReady,
     m2TowingRecommended,
   };
   console.log(JSON.stringify(result, null, 2));

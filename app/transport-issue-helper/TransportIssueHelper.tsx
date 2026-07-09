@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { issueTemplates, recommendIssue, extractVehicleNumber, type RiskLevel } from "./issueTemplates";
+import { issueTemplates, recommendIssue, extractVehicleNumber, buildIssueShareText, type RiskLevel } from "./issueTemplates";
 
 const HISTORY_KEY = "pdi-transport-issue-history-v1";
 
@@ -17,6 +17,10 @@ type IssueHistoryItem = {
 
 function CopyButton({ id, text, copiedId, onCopy }: { id: string; text: string; copiedId: string; onCopy: (id: string, text: string) => void }) {
   return <button className="transport-copy" type="button" onClick={() => onCopy(id, text)}>{copiedId === id ? "복사됨" : "복사"}</button>;
+}
+
+function riskClass(risk: RiskLevel) {
+  return risk === "높음" ? "high" : risk === "주의" ? "caution" : risk === "낮음" ? "low" : "check";
 }
 
 export default function TransportIssueHelper() {
@@ -49,7 +53,7 @@ export default function TransportIssueHelper() {
     () => issueTemplates.find((template) => template.id === selectedId) ?? issueTemplates[0],
     [selectedId],
   );
-  const internalMessage = selected.internalMessage.replaceAll("[차량번호]", vehicleNumber || "[차량번호]");
+  const internalMessage = buildIssueShareText(selected, vehicleNumber);
   const fullText = [
     `[${risk}] ${selected.title}`,
     "",
@@ -62,7 +66,7 @@ export default function TransportIssueHelper() {
     "[기사님 답변 추천]",
     selected.driverReply,
     "",
-    "[내부 공유 문구]",
+    "[보내는 양식]",
     internalMessage,
     "",
     "[주행/이동 가이드]",
@@ -125,32 +129,45 @@ export default function TransportIssueHelper() {
           <span>기사님 문의 / 현장 원문</span>
           <textarea value={rawText} onChange={(event) => setRawText(event.target.value)} placeholder="예: [12가3456] 탁송 중 타이어 펑크로 견인이 필요합니다." />
         </label>
-        <div className="transport-input-row">
-          <label className="transport-field">
-            <span>차량번호</span>
-            <input value={vehicleNumber} onChange={(event) => setVehicleNumber(event.target.value)} placeholder="12가3456" />
-          </label>
-          <label className="transport-field">
-            <span>이슈 유형</span>
-            <select value={selectedId} onChange={(event) => selectTemplate(event.target.value)}>
-              {issueTemplates.map((template) => <option value={template.id} key={template.id}>{template.title}</option>)}
-            </select>
-          </label>
-        </div>
+        <label className="transport-field transport-vehicle-field">
+          <span>차량번호</span>
+          <input value={vehicleNumber} onChange={(event) => setVehicleNumber(event.target.value)} placeholder="12가3456" />
+        </label>
         <button className="platform-button button-primary transport-analyze" type="button" onClick={analyze}>이슈 분석하기</button>
         <p className="transport-notice">{notice}</p>
+
+        <div className="transport-template-picker">
+          <div className="transport-picker-heading">
+            <span>TYPE SELECT</span>
+            <strong>이슈 유형 바로 선택</strong>
+          </div>
+          <div className="transport-template-grid">
+            {issueTemplates.map((template) => (
+              <button
+                className={template.id === selectedId ? "is-selected" : ""}
+                type="button"
+                key={template.id}
+                onClick={() => selectTemplate(template.id)}
+              >
+                <span className={`transport-risk risk-${riskClass(template.risk)}`}>{template.risk}</span>
+                <strong>{template.title}</strong>
+                <small>{template.checks.slice(0, 2).join(" · ")}</small>
+              </button>
+            ))}
+          </div>
+        </div>
       </section>
 
       <section className="transport-result-panel">
         <div className="transport-panel-heading">
-          <div><span>02</span><h2>응답 추천 결과</h2></div>
+          <div><span>02</span><h2>보내는 양식 / 참고 결과</h2></div>
           <button className="transport-copy transport-copy-all" type="button" onClick={() => copyText("all", fullText)}>{copiedId === "all" ? "전체 복사됨" : "전체 복사"}</button>
         </div>
 
         <div className="transport-result-head">
           <div className="transport-result-title">
             <div>
-              <span className={`transport-risk risk-${risk === "높음" ? "high" : risk === "주의" ? "caution" : risk === "낮음" ? "low" : "check"}`}>{risk}</span>
+              <span className={`transport-risk risk-${riskClass(risk)}`}>{risk}</span>
               <h2>{selected.title}</h2>
             </div>
             {recommendationReasons.length > 0 && (
@@ -164,6 +181,10 @@ export default function TransportIssueHelper() {
         </div>
 
         <div className="transport-result-grid">
+          <article className="transport-message-card transport-send-card">
+            <div><h3>보내는 양식</h3><CopyButton id="send" text={internalMessage} copiedId={copiedId} onCopy={copyText} /></div>
+            <p>{internalMessage}</p>
+          </article>
           <article className="transport-info-card">
             <div className="transport-card-heading">
               <h3>우선 확인사항</h3>
@@ -183,7 +204,7 @@ export default function TransportIssueHelper() {
             <p>{selected.driverReply}</p>
           </article>
           <article className="transport-message-card">
-            <div><h3>내부 공유 문구</h3><CopyButton id="internal" text={internalMessage} copiedId={copiedId} onCopy={copyText} /></div>
+            <div><h3>내부 공유 참고 문구</h3><CopyButton id="internal" text={internalMessage} copiedId={copiedId} onCopy={copyText} /></div>
             <p>{internalMessage}</p>
           </article>
           <article className="transport-guide-card">

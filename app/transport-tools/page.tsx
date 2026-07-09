@@ -9,6 +9,13 @@ const modules = [
     tone: "purple" as const,
   },
   {
+    title: "탁송 중 견인",
+    description: "M2 견인 요청 시 매니저에게 보내는 양식을 바로 복사합니다.",
+    status: "LIVE" as const,
+    href: "/transport-tools/towing-request",
+    tone: "purple" as const,
+  },
+  {
     title: "제주도 탁송 요청 문구 생성",
     description: "제주도 탁송 신청에 사용할 담당자 공유 문구를 생성합니다.",
     status: "LIVE" as const,
