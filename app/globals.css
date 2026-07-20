@@ -3232,6 +3232,83 @@ body {
   padding-bottom: 34px;
 }
 
+.transport-reminder-card {
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 16px;
+  padding: 16px 18px;
+  background:
+    radial-gradient(circle at 0% 0%, rgba(0, 223, 242, 0.12), transparent 30%),
+    linear-gradient(135deg, rgba(216, 198, 142, 0.11), rgba(8, 17, 25, 0.78)),
+    rgba(4, 10, 16, 0.86);
+  border: 1px solid rgba(216, 198, 142, 0.22);
+  border-radius: 20px;
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.22);
+}
+
+.transport-reminder-card::before {
+  position: absolute;
+  top: 0;
+  right: 18px;
+  left: 18px;
+  height: 1px;
+  content: "";
+  background: linear-gradient(90deg, transparent, rgba(216, 198, 142, 0.56), rgba(0, 223, 242, 0.34), transparent);
+}
+
+.transport-reminder-card .transport-panel-heading {
+  margin-bottom: 10px;
+}
+
+.transport-reminder-card .transport-panel-heading span {
+  color: #020409;
+  background: #ffd55a;
+  border-color: rgba(255, 213, 90, 0.7);
+}
+
+.transport-reminder-card .transport-panel-heading h2 {
+  color: #fff8de;
+  font-size: 18px;
+}
+
+.transport-reminder-card > p {
+  margin: 0 0 12px;
+  color: #00dff2;
+  font-family: var(--font-console);
+  font-size: 13px;
+  font-weight: 850;
+  line-height: 1.55;
+}
+
+.transport-reminder-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.transport-reminder-list div {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  padding: 12px;
+  background: rgba(2, 4, 9, 0.46);
+  border: 1px solid rgba(216, 198, 142, 0.14);
+  border-radius: 14px;
+}
+
+.transport-reminder-list strong {
+  color: #ffd55a;
+  font-size: 13px;
+}
+
+.transport-reminder-list span {
+  color: #fff8de;
+  font-family: var(--font-console);
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.5;
+}
+
 .transport-input-panel,
 .transport-result-panel {
   min-width: 0;
@@ -3644,9 +3721,14 @@ body {
   .transport-workspace {
     grid-template-columns: 1fr;
   }
+
+  .transport-reminder-list {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 640px) {
+  .transport-reminder-card,
   .transport-input-panel,
   .transport-result-panel {
     padding: 13px;

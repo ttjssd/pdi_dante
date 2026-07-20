@@ -4,6 +4,17 @@ import { useEffect, useMemo, useState } from "react";
 import { issueTemplates, recommendIssue, extractVehicleNumber, buildIssueShareText, type RiskLevel } from "./issueTemplates";
 
 const HISTORY_KEY = "pdi-transport-issue-history-v1";
+const REMINDER_TAG_TEXT = [
+  "렌톡 태그 대상자 리마인드 cc @ethan @moby @juniper @dante @wood",
+  "1. 사고건 이슈 : @김요한 @손인환 @김승현",
+  "2. 탁송중 이슈 : @박은희 @이미혜 cc. @김경민 @김윤선",
+  "3. 제주 탁송 문의 건 : @고채현 @김경민",
+].join("\n");
+const REMINDER_TAGS = [
+  { label: "사고건 이슈", tags: "@김요한 @손인환 @김승현" },
+  { label: "탁송중 이슈", tags: "@박은희 @이미혜 cc. @김경민 @김윤선" },
+  { label: "제주 탁송 문의 건", tags: "@고채현 @김경민" },
+];
 
 type IssueHistoryItem = {
   id: string;
@@ -119,6 +130,24 @@ export default function TransportIssueHelper() {
 
   return (
     <>
+      <section className="transport-reminder-card">
+        <div className="transport-panel-heading">
+          <div><span>!</span><h2>렌톡 태그 대상자 리마인드</h2></div>
+          <button className="transport-copy" type="button" onClick={() => copyText("reminder-tags", REMINDER_TAG_TEXT)}>
+            {copiedId === "reminder-tags" ? "복사됨" : "공지 복사"}
+          </button>
+        </div>
+        <p>cc @ethan @moby @juniper @dante @wood</p>
+        <div className="transport-reminder-list">
+          {REMINDER_TAGS.map((item, index) => (
+            <div key={item.label}>
+              <strong>{index + 1}. {item.label}</strong>
+              <span>{item.tags}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+
       <div className="transport-workspace">
       <section className="transport-input-panel">
         <div className="transport-panel-heading">

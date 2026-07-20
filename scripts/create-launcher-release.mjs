@@ -47,7 +47,7 @@ const manifest = {
   version,
   minLauncherVersion: "1.0.0",
   releaseDate,
-  notes: ["2.1.3 탁송 보조툴 리빌딩, 견인 요청 메뉴, 주간 회의록 UI 개선, 런처 백업 최신 1개 유지"],
+  notes: ["2.1.4 제주 탁송 담당자 수정, 탁송 이슈 태그 공지, 업무일지 특이사항 세부 합산 업데이트"],
   packages: {
     windows: {
       url: packageUrl,

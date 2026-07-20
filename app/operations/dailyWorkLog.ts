@@ -11,6 +11,11 @@ export type DailyWorkLog = {
   dailyTransportHandOverCount: number;
   customerInboundCount: number;
   exporterVisitCount: number;
+  dentIssueCount: number;
+  maintenanceIssueCount: number;
+  smartKeyIssueCount: number;
+  batteryIssueCount: number;
+  otherIssueCount: number;
   managementTasks: string[];
   shiftWorkers: string[];
   oldoSupport: string[];
@@ -40,6 +45,11 @@ export type WeeklyReportTotals = {
   handover: number;
   customerInbound: number;
   exporterVisit: number;
+  dentIssue: number;
+  maintenanceIssue: number;
+  smartKeyIssue: number;
+  batteryIssue: number;
+  otherIssue: number;
 };
 
 export type WeeklyManualAdjustment = Partial<WeeklyReportTotals>;
@@ -68,6 +78,22 @@ const EXPORTER_VISIT_COUNT_PATTERNS = [
   /수출\s*업자\s*방문(?:\s*(?:건|대응))?\s*[-:：]?\s*(\d+)\s*(?:건|명|팀)?/i,
   /수출업자\s*방문(?:\s*(?:건|대응))?\s*[-:：]?\s*(\d+)\s*(?:건|명|팀)?/i,
 ];
+const DENT_ISSUE_COUNT_PATTERNS = [
+  /요철(?:\s*(?:발생|건|차량|내역|처리|확인))?\s*[-:：]?\s*(\d+)\s*(?:건|대)?/i,
+];
+const MAINTENANCE_ISSUE_COUNT_PATTERNS = [
+  /정비(?:\s*(?:발생|건|차량|입고|내역|처리|확인|요청))?\s*[-:：]?\s*(\d+)\s*(?:건|대)?/i,
+];
+const SMART_KEY_ISSUE_COUNT_PATTERNS = [
+  /스마트\s*키(?:\s*(?:불량|교체|수리|재등록|재발급|이슈|발생|건|차량|내역|처리|확인))?\s*[-:：]?\s*(\d+)\s*(?:건|대)?/i,
+  /스마트키(?:\s*(?:불량|교체|수리|재등록|재발급|이슈|발생|건|차량|내역|처리|확인))?\s*[-:：]?\s*(\d+)\s*(?:건|대)?/i,
+];
+const BATTERY_ISSUE_COUNT_PATTERNS = [
+  /배터리(?:\s*(?:교체|방전|불량|발생|건|차량|내역|처리|확인))?\s*[-:：]?\s*(\d+)\s*(?:건|대)?/i,
+];
+const OTHER_ISSUE_COUNT_PATTERNS = [
+  /기타(?:\s*(?:발생|건|차량|내역|특이사항|처리|확인))?\s*[-:：]?\s*(\d+)\s*(?:건|대)?/i,
+];
 
 export function createEmptyDraft(date = formatDateInput(new Date())): DailyWorkLogDraft {
   const parsedDate = parseDateInput(date);
@@ -80,6 +106,11 @@ export function createEmptyDraft(date = formatDateInput(new Date())): DailyWorkL
     dailyTransportHandOverCount: 0,
     customerInboundCount: 0,
     exporterVisitCount: 0,
+    dentIssueCount: 0,
+    maintenanceIssueCount: 0,
+    smartKeyIssueCount: 0,
+    batteryIssueCount: 0,
+    otherIssueCount: 0,
     managementTasks: [],
     shiftWorkers: [],
     oldoSupport: [],
@@ -110,6 +141,11 @@ export function parseDailyWorkLog(rawText: string, today = new Date()): DailyWor
   draft.dailyTransportHandOverCount = extractCount(normalized, /금일\s*탁송\s*인계\s*[-:：]?\s*(\d+)\s*대/i);
   draft.customerInboundCount = extractCountFromPatterns(normalized, CUSTOMER_INBOUND_COUNT_PATTERNS);
   draft.exporterVisitCount = extractCountFromPatterns(normalized, EXPORTER_VISIT_COUNT_PATTERNS);
+  draft.dentIssueCount = extractLineTotalFromPatterns(normalized, DENT_ISSUE_COUNT_PATTERNS);
+  draft.maintenanceIssueCount = extractLineTotalFromPatterns(normalized, MAINTENANCE_ISSUE_COUNT_PATTERNS);
+  draft.smartKeyIssueCount = extractLineTotalFromPatterns(normalized, SMART_KEY_ISSUE_COUNT_PATTERNS);
+  draft.batteryIssueCount = extractLineTotalFromPatterns(normalized, BATTERY_ISSUE_COUNT_PATTERNS);
+  draft.otherIssueCount = extractLineTotalFromPatterns(normalized, OTHER_ISSUE_COUNT_PATTERNS);
 
   let section: "management" | "people" | "other" | "" = "";
   let peopleSection: "shift" | "oldo" | "leave" | "publicLeave" | "" = "";
@@ -121,6 +157,11 @@ export function parseDailyWorkLog(rawText: string, today = new Date()): DailyWor
       matchesAny(line, INBOUND_COUNT_PATTERNS) ||
       matchesAny(line, CUSTOMER_INBOUND_COUNT_PATTERNS) ||
       matchesAny(line, EXPORTER_VISIT_COUNT_PATTERNS) ||
+      matchesAny(line, DENT_ISSUE_COUNT_PATTERNS) ||
+      matchesAny(line, MAINTENANCE_ISSUE_COUNT_PATTERNS) ||
+      matchesAny(line, SMART_KEY_ISSUE_COUNT_PATTERNS) ||
+      matchesAny(line, BATTERY_ISSUE_COUNT_PATTERNS) ||
+      matchesAny(line, OTHER_ISSUE_COUNT_PATTERNS) ||
       /차량\s*출고\s*준비|준비\s*중.*특이사항|금일\s*탁송\s*인계/.test(line)
     ) continue;
     if (/금일\s*탁송\s*이력/.test(line)) continue;
@@ -218,13 +259,13 @@ export function generateWeeklyReport(
 금주 출고준비 완료
 출고준비완료 - ${current.ready}대${comparisonText(current.ready, previous.ready, hasPrevious, "대")}
 
-출고 중 특이사항 발생 건 - ${current.special}대${comparisonText(current.special, previous.special, hasPrevious, "건")}
+출고 중 특이사항 발생 건 - ${current.special}건${comparisonText(current.special, previous.special, hasPrevious, "건")}
 
-요철 - (수기 입력)
-정비 - (수기 입력)
-스마트키 불량 - (수기 입력)
-배터리 교체 - (수기 입력)
-기타 - (수기 입력)
+요철 - ${current.dentIssue}건${comparisonText(current.dentIssue, previous.dentIssue, hasPrevious, "건")}
+정비 - ${current.maintenanceIssue}건${comparisonText(current.maintenanceIssue, previous.maintenanceIssue, hasPrevious, "건")}
+스마트키 불량/교체 - ${current.smartKeyIssue}건${comparisonText(current.smartKeyIssue, previous.smartKeyIssue, hasPrevious, "건")}
+배터리 교체 - ${current.batteryIssue}건${comparisonText(current.batteryIssue, previous.batteryIssue, hasPrevious, "건")}
+기타 - ${current.otherIssue}건${comparisonText(current.otherIssue, previous.otherIssue, hasPrevious, "건")}
 
 루틴 업무
 (수기 입력)
@@ -307,6 +348,11 @@ export function getExtractionWarnings(record: DailyWorkLog) {
     { label: "특이사항", pattern: /특이사항\s*차량\s*(?:총)?\s*\d+\s*대/i },
     { label: "고객 인입", patterns: CUSTOMER_INBOUND_COUNT_PATTERNS, optional: true },
     { label: "수출업자 방문", patterns: EXPORTER_VISIT_COUNT_PATTERNS, optional: true },
+    { label: "요철", patterns: DENT_ISSUE_COUNT_PATTERNS, optional: true },
+    { label: "정비", patterns: MAINTENANCE_ISSUE_COUNT_PATTERNS, optional: true },
+    { label: "스마트키 불량/교체", patterns: SMART_KEY_ISSUE_COUNT_PATTERNS, optional: true },
+    { label: "배터리 교체", patterns: BATTERY_ISSUE_COUNT_PATTERNS, optional: true },
+    { label: "기타 특이사항", patterns: OTHER_ISSUE_COUNT_PATTERNS, optional: true },
   ];
   return checks
     .filter((check) => !check.optional)
@@ -340,6 +386,11 @@ function summarizeRecords(records: DailyWorkLog[]): WeeklyReportTotals {
       handover: summary.handover + (Number(record.dailyTransportHandOverCount) || 0),
       customerInbound: summary.customerInbound + (Number(record.customerInboundCount) || 0),
       exporterVisit: summary.exporterVisit + (Number(record.exporterVisitCount) || 0),
+      dentIssue: summary.dentIssue + (Number(record.dentIssueCount) || 0),
+      maintenanceIssue: summary.maintenanceIssue + (Number(record.maintenanceIssueCount) || 0),
+      smartKeyIssue: summary.smartKeyIssue + (Number(record.smartKeyIssueCount) || 0),
+      batteryIssue: summary.batteryIssue + (Number(record.batteryIssueCount) || 0),
+      otherIssue: summary.otherIssue + (Number(record.otherIssueCount) || 0),
     }),
     emptyTotals(),
   );
@@ -360,11 +411,28 @@ function addTotals(base: WeeklyReportTotals, adjustment: WeeklyManualAdjustment)
     handover: base.handover + (Number(adjustment.handover) || 0),
     customerInbound: base.customerInbound + (Number(adjustment.customerInbound) || 0),
     exporterVisit: base.exporterVisit + (Number(adjustment.exporterVisit) || 0),
+    dentIssue: base.dentIssue + (Number(adjustment.dentIssue) || 0),
+    maintenanceIssue: base.maintenanceIssue + (Number(adjustment.maintenanceIssue) || 0),
+    smartKeyIssue: base.smartKeyIssue + (Number(adjustment.smartKeyIssue) || 0),
+    batteryIssue: base.batteryIssue + (Number(adjustment.batteryIssue) || 0),
+    otherIssue: base.otherIssue + (Number(adjustment.otherIssue) || 0),
   };
 }
 
 function emptyTotals(): WeeklyReportTotals {
-  return { inbound: 0, ready: 0, special: 0, handover: 0, customerInbound: 0, exporterVisit: 0 };
+  return {
+    inbound: 0,
+    ready: 0,
+    special: 0,
+    handover: 0,
+    customerInbound: 0,
+    exporterVisit: 0,
+    dentIssue: 0,
+    maintenanceIssue: 0,
+    smartKeyIssue: 0,
+    batteryIssue: 0,
+    otherIssue: 0,
+  };
 }
 
 function extractCount(text: string, pattern: RegExp) {
@@ -377,6 +445,19 @@ function extractCountFromPatterns(text: string, patterns: RegExp[]) {
     if (value > 0) return value;
   }
   return 0;
+}
+
+function extractLineTotalFromPatterns(text: string, patterns: RegExp[]) {
+  return text
+    .split("\n")
+    .map((line) => {
+      for (const pattern of patterns) {
+        const value = extractCount(line, pattern);
+        if (value > 0) return value;
+      }
+      return 0;
+    })
+    .reduce((total, value) => total + value, 0);
 }
 
 function matchesAny(text: string, patterns: RegExp[]) {

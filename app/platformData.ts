@@ -90,7 +90,7 @@ export const toolSearchItems = [
     href: "/transport-tools/jeju-request",
     status: "LIVE" as const,
     tone: "purple" as Tone,
-    keywords: ["제주", "제주도", "탁송", "고재현", "김경민", "선적", "오더", "도착일", "요청"],
+    keywords: ["제주", "제주도", "탁송", "고채현", "김경민", "선적", "오더", "도착일", "요청"],
   },
   {
     title: "입고 차량 중 상품화 누락 후 복귀차량",
@@ -150,10 +150,20 @@ export const toolSearchItems = [
 
 export const updates: UpdateGroup[] = [
   {
-    date: "07/09",
+    date: "07/21",
     items: [
       {
         version: APP_VERSION,
+        title: "업무일지 특이사항 및 탁송 공지 업데이트",
+        description: "업무일지에서 정비·스마트키 불량/교체·배터리 등 특이사항 세부 수치를 합산하고, 탁송 이슈 태그 공지와 제주 탁송 담당자명을 최신화했습니다.",
+      },
+    ],
+  },
+  {
+    date: "07/09",
+    items: [
+      {
+        version: "2.1.3",
         title: "탁송·회의록 UI 및 런처 백업 정책 업데이트",
         description: "탁송 보조툴을 카드형으로 리빌딩하고 견인 요청 메뉴를 분리했으며, 주간 회의록 작성 화면 시인성과 런처 백업 최신 1개 유지 정책을 적용했습니다.",
       },
