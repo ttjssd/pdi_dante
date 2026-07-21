@@ -4200,6 +4200,127 @@ body {
   padding-bottom: 34px;
 }
 
+.launcher-update-notice {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 18px;
+  align-items: center;
+  margin-bottom: 18px;
+  padding: 18px;
+  background:
+    radial-gradient(circle at 0% 0%, rgba(255, 213, 90, 0.18), transparent 32%),
+    linear-gradient(135deg, rgba(8, 17, 25, 0.88), rgba(4, 10, 16, 0.82)),
+    rgba(2, 4, 9, 0.86);
+  border: 1px solid rgba(255, 213, 90, 0.28);
+  border-radius: 22px;
+  box-shadow: 0 22px 60px rgba(0, 0, 0, 0.24);
+}
+
+.launcher-update-notice::before {
+  position: absolute;
+  top: 0;
+  right: 20px;
+  left: 20px;
+  height: 1px;
+  content: "";
+  background: linear-gradient(90deg, transparent, rgba(255, 213, 90, 0.7), rgba(0, 223, 242, 0.44), transparent);
+}
+
+.launcher-update-notice > div {
+  display: grid;
+  min-width: 0;
+  gap: 7px;
+}
+
+.launcher-update-notice span,
+.launcher-update-notice small,
+.launcher-update-notice em {
+  font-family: var(--font-console);
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.launcher-update-notice span {
+  color: #ffd55a;
+  font-size: 11px;
+}
+
+.launcher-update-notice h2 {
+  margin: 0;
+  color: #fff8de;
+  font-size: clamp(20px, 2vw, 28px);
+  letter-spacing: -0.035em;
+}
+
+.launcher-update-notice p,
+.launcher-update-notice strong,
+.launcher-update-notice li {
+  color: #b8cbe0;
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.launcher-update-notice p {
+  margin: 0;
+}
+
+.launcher-update-notice strong {
+  color: #fff8de;
+  font-weight: 800;
+}
+
+.launcher-update-notice ul {
+  display: grid;
+  gap: 5px;
+  margin: 2px 0 0;
+  padding-left: 18px;
+}
+
+.launcher-update-notice aside {
+  display: grid;
+  min-width: 150px;
+  gap: 7px;
+  justify-items: end;
+  padding: 12px;
+  background: rgba(2, 4, 9, 0.42);
+  border: 1px solid rgba(216, 198, 142, 0.16);
+  border-radius: 16px;
+}
+
+.launcher-update-notice small {
+  color: #9fb3c8;
+  font-size: 10px;
+}
+
+.launcher-update-notice b {
+  color: #fff8de;
+  font-family: var(--font-console);
+  font-size: 24px;
+}
+
+.launcher-update-notice em {
+  padding: 4px 8px;
+  color: #ff557f;
+  background: rgba(255, 85, 127, 0.1);
+  border: 1px solid rgba(255, 85, 127, 0.2);
+  border-radius: 999px;
+  font-size: 10px;
+  font-style: normal;
+}
+
+.launcher-update-notice button {
+  min-height: 34px;
+  padding: 0 13px;
+  color: #020409;
+  background: #ffd55a;
+  border: 0;
+  border-radius: 11px;
+  cursor: pointer;
+  font-weight: 900;
+}
+
 .update-list {
   overflow: hidden;
   background: rgba(11, 16, 32, 0.74);
@@ -4256,6 +4377,14 @@ body {
     grid-template-columns: 56px minmax(0, 1fr);
     gap: 10px;
     padding: 12px;
+  }
+
+  .launcher-update-notice {
+    grid-template-columns: 1fr;
+  }
+
+  .launcher-update-notice aside {
+    justify-items: start;
   }
 }
 

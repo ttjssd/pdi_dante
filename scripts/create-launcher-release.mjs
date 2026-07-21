@@ -47,7 +47,7 @@ const manifest = {
   version,
   minLauncherVersion: "1.0.0",
   releaseDate,
-  notes: ["2.1.4 제주 탁송 담당자 수정, 탁송 이슈 태그 공지, 업무일지 특이사항 세부 합산 업데이트"],
+  notes: ["2.1.5 실행 중인 업무 앱에 새 업데이트 알림 배너 표시 및 재시작 안내 추가"],
   packages: {
     windows: {
       url: packageUrl,

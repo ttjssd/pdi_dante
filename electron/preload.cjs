@@ -12,6 +12,12 @@ contextBridge.exposeInMainWorld("pdiUpdater", {
   },
 });
 
+contextBridge.exposeInMainWorld("pdiLauncherUpdateNotice", {
+  get() {
+    return ipcRenderer.invoke("launcher-update-notice:get");
+  },
+});
+
 contextBridge.exposeInMainWorld("pdiWindow", {
   enterConsoleMode() {
     return ipcRenderer.invoke("window:enter-console-mode");

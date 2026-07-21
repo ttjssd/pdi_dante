@@ -128,6 +128,25 @@ function getWindowMode() {
   };
 }
 
+function getLauncherUpdateNoticePath() {
+  if (!MANAGED_BY_LAUNCHER) return "";
+  const launcherRoot = process.env.PDI_LAUNCHER_ROOT
+    ? path.resolve(process.env.PDI_LAUNCHER_ROOT)
+    : path.resolve(process.cwd(), "..", "..");
+  return path.join(launcherRoot, "launcher-data", "update-notice.json");
+}
+
+function getLauncherUpdateNotice() {
+  const noticePath = getLauncherUpdateNoticePath();
+  if (!noticePath || !fs.existsSync(noticePath)) return null;
+  try {
+    return JSON.parse(fs.readFileSync(noticePath, "utf8").replace(/^\uFEFF/, ""));
+  } catch (error) {
+    writeDebugLog(`launcher update notice read failed: ${error.message}`);
+    return null;
+  }
+}
+
 function setupAutoUpdater() {
   if (!autoUpdater) return;
   autoUpdater.on("checking-for-update", () => {
@@ -264,6 +283,7 @@ ipcMain.handle("window:toggle-maximize", () => {
 ipcMain.handle("window:get-mode", () => getWindowMode());
 
 ipcMain.handle("updater:get-status", () => updateStatus);
+ipcMain.handle("launcher-update-notice:get", () => getLauncherUpdateNotice());
 
 ipcMain.handle("updater:restart", () => {
   if (!autoUpdater || updateStatus.state !== "downloaded") return false;

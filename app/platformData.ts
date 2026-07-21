@@ -150,10 +150,20 @@ export const toolSearchItems = [
 
 export const updates: UpdateGroup[] = [
   {
-    date: "07/21",
+    date: "07/22",
     items: [
       {
         version: APP_VERSION,
+        title: "실행 중 업데이트 알림 추가",
+        description: "런처가 새 업데이트를 발견하면 켜져 있는 업무 앱 콘솔에 업데이트 준비 알림과 재시작 필요 안내를 표시합니다.",
+      },
+    ],
+  },
+  {
+    date: "07/21",
+    items: [
+      {
+        version: "2.1.4",
         title: "업무일지 특이사항 및 탁송 공지 업데이트",
         description: "업무일지에서 정비·스마트키 불량/교체·배터리 등 특이사항 세부 수치를 합산하고, 탁송 이슈 태그 공지와 제주 탁송 담당자명을 최신화했습니다.",
       },

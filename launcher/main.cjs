@@ -59,6 +59,7 @@ function getPaths() {
     logs: path.join(root, "logs"),
     logFile: path.join(root, "logs", "launcher.log"),
     localVersion: path.join(root, "launcher-data", "local-version.json"),
+    updateNotice: path.join(root, "launcher-data", "update-notice.json"),
     settings: path.join(root, "launcher-data", "settings.json"),
     transaction: path.join(root, "launcher-data", "update-state.json"),
   };
@@ -234,6 +235,27 @@ function getLocalVersion() {
   };
 }
 
+function writeUpdateNotice(local, manifest) {
+  const paths = ensureDirectories();
+  writeJson(paths.updateNotice, {
+    id: `update-${manifest.version}`,
+    type: "update-available",
+    version: manifest.version,
+    currentVersion: local.version,
+    detectedAt: new Date().toISOString(),
+    title: "새로운 업데이트가 준비되었습니다",
+    message: `PDI Backoffice v${manifest.version} 업데이트가 준비되었습니다.`,
+    restartRequired: true,
+    actionText: "업무 내용을 저장한 뒤 프로그램을 종료하고 런처에서 업데이트를 적용해 주세요. 적용 후 앱 재실행이 필요합니다.",
+    notes: Array.isArray(manifest.notes) ? manifest.notes.slice(0, 4) : [],
+  });
+}
+
+function clearUpdateNotice() {
+  const paths = ensureDirectories();
+  fs.rmSync(paths.updateNotice, { force: true });
+}
+
 async function readManifest(source) {
   if (/^https?:\/\//i.test(source)) {
     const response = await fetch(source, { cache: "no-store" });
@@ -273,6 +295,11 @@ async function checkForUpdates({ installWhenMissing = true } = {}) {
     const manifest = validateManifest(await readManifest(settings.manifestUrl));
     const updateAvailable = !local.executableExists || compareVersions(manifest.version, local.version) > 0;
     saveSettings({ lastCheckUpdateAt: new Date().toISOString() });
+    if (updateAvailable && local.executableExists) {
+      writeUpdateNotice(local, manifest);
+    } else {
+      clearUpdateNotice();
+    }
     sendState({
       phase: updateAvailable ? "available" : "ready",
       message: updateAvailable
@@ -433,6 +460,7 @@ async function applyUpdate() {
     fs.rmSync(extractPath, { recursive: true, force: true });
     fs.rmSync(packagePath, { force: true });
     pruneBackupDirectories({ keepPath: backupPath, keepLatest: 1 });
+    clearUpdateNotice();
 
     log(`app ${local.version} -> ${manifest.version} applied`);
     sendState({
@@ -489,7 +517,7 @@ async function startBackoffice() {
       cwd: paths.current,
       detached: false,
       windowsHide: false,
-      env: { ...process.env, PDI_MANAGED_BY_LAUNCHER: "1" },
+      env: { ...process.env, PDI_MANAGED_BY_LAUNCHER: "1", PDI_LAUNCHER_ROOT: paths.root },
     });
     runningApp = child;
 

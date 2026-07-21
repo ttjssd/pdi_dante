@@ -1,4 +1,5 @@
 import { DashboardCard, PlatformHeader, StatCard } from "../components/platform";
+import LauncherUpdateNotice from "../components/LauncherUpdateNotice";
 import PdiScheduleSummary from "../components/PdiScheduleSummary";
 import RecentRecordsStat from "../components/RecentRecordsStat";
 import ToolSearch from "../components/ToolSearch";
@@ -22,6 +23,8 @@ export default function PlatformConsole() {
             <strong><i /> SYSTEM READY</strong>
           </div>
         </section>
+
+        <LauncherUpdateNotice />
 
         <section className="stats-grid" aria-label="플랫폼 통계">
           <StatCard label="사용 가능 도구 수" value="7" accent="cyan" />

@@ -22,6 +22,19 @@ export type UpdaterStatus = {
   detail?: string;
 };
 
+export type LauncherUpdateNotice = {
+  id: string;
+  type: "update-available";
+  version: string;
+  currentVersion?: string;
+  detectedAt?: string;
+  title: string;
+  message: string;
+  restartRequired?: boolean;
+  actionText?: string;
+  notes?: string[];
+};
+
 export type LocalBackground = {
   id: string;
   name: string;
@@ -40,6 +53,9 @@ declare global {
     pdiUpdater?: {
       onStatus: (callback: (payload: UpdaterStatus) => void) => () => void;
       restartToUpdate: () => Promise<void>;
+    };
+    pdiLauncherUpdateNotice?: {
+      get: () => Promise<LauncherUpdateNotice | null>;
     };
     pdiBackgrounds?: {
       list: () => Promise<LocalBackground[]>;
