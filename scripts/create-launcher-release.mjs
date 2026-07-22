@@ -47,7 +47,7 @@ const manifest = {
   version,
   minLauncherVersion: "1.0.0",
   releaseDate,
-  notes: ["2.1.5 실행 중인 업무 앱에 새 업데이트 알림 배너 표시 및 재시작 안내 추가"],
+  notes: ["2.1.6 업무일지 특이사항 세부 항목 16종 자동 인식 및 주간 회의록 합산 추가"],
   packages: {
     windows: {
       url: packageUrl,

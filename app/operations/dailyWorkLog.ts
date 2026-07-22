@@ -11,8 +11,22 @@ export type DailyWorkLog = {
   dailyTransportHandOverCount: number;
   customerInboundCount: number;
   exporterVisitCount: number;
+  plateReplacementIssueCount: number;
+  glassReplacementIssueCount: number;
+  floorMatReplacementIssueCount: number;
+  tireReplacementIssueCount: number;
   dentIssueCount: number;
   maintenanceIssueCount: number;
+  polishingIssueCount: number;
+  bodyPaintIssueCount: number;
+  lightRestorationIssueCount: number;
+  glassRestorationIssueCount: number;
+  interiorRestorationIssueCount: number;
+  wheelRestorationIssueCount: number;
+  tintingIssueCount: number;
+  decalRemovalIssueCount: number;
+  navigationBlackboxRearCameraIssueCount: number;
+  interiorCleaningIssueCount: number;
   smartKeyIssueCount: number;
   batteryIssueCount: number;
   otherIssueCount: number;
@@ -45,8 +59,22 @@ export type WeeklyReportTotals = {
   handover: number;
   customerInbound: number;
   exporterVisit: number;
+  plateReplacementIssue: number;
+  glassReplacementIssue: number;
+  floorMatReplacementIssue: number;
+  tireReplacementIssue: number;
   dentIssue: number;
   maintenanceIssue: number;
+  polishingIssue: number;
+  bodyPaintIssue: number;
+  lightRestorationIssue: number;
+  glassRestorationIssue: number;
+  interiorRestorationIssue: number;
+  wheelRestorationIssue: number;
+  tintingIssue: number;
+  decalRemovalIssue: number;
+  navigationBlackboxRearCameraIssue: number;
+  interiorCleaningIssue: number;
   smartKeyIssue: number;
   batteryIssue: number;
   otherIssue: number;
@@ -64,6 +92,55 @@ export type WeeklyReportSnapshot = {
   updatedAt: string;
 };
 
+type DailyIssueCountKey =
+  | "plateReplacementIssueCount"
+  | "glassReplacementIssueCount"
+  | "floorMatReplacementIssueCount"
+  | "tireReplacementIssueCount"
+  | "dentIssueCount"
+  | "maintenanceIssueCount"
+  | "polishingIssueCount"
+  | "bodyPaintIssueCount"
+  | "lightRestorationIssueCount"
+  | "glassRestorationIssueCount"
+  | "interiorRestorationIssueCount"
+  | "wheelRestorationIssueCount"
+  | "tintingIssueCount"
+  | "decalRemovalIssueCount"
+  | "navigationBlackboxRearCameraIssueCount"
+  | "interiorCleaningIssueCount"
+  | "smartKeyIssueCount"
+  | "batteryIssueCount"
+  | "otherIssueCount";
+
+type WeeklyIssueTotalKey =
+  | "plateReplacementIssue"
+  | "glassReplacementIssue"
+  | "floorMatReplacementIssue"
+  | "tireReplacementIssue"
+  | "dentIssue"
+  | "maintenanceIssue"
+  | "polishingIssue"
+  | "bodyPaintIssue"
+  | "lightRestorationIssue"
+  | "glassRestorationIssue"
+  | "interiorRestorationIssue"
+  | "wheelRestorationIssue"
+  | "tintingIssue"
+  | "decalRemovalIssue"
+  | "navigationBlackboxRearCameraIssue"
+  | "interiorCleaningIssue"
+  | "smartKeyIssue"
+  | "batteryIssue"
+  | "otherIssue";
+
+export type SpecialIssueMetric = {
+  label: string;
+  countKey: DailyIssueCountKey;
+  totalKey: WeeklyIssueTotalKey;
+  patterns: RegExp[];
+};
+
 const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
 const INBOUND_COUNT_PATTERNS = [
   /(?:원창(?:\s*PDI)?).*?(?:항동(?:\s*PDI)?).*?입고(?:\s*(?:대응|진행|처리|완료|차량))?\s*[-:：]?\s*(\d+)\s*대/i,
@@ -78,21 +155,27 @@ const EXPORTER_VISIT_COUNT_PATTERNS = [
   /수출\s*업자\s*방문(?:\s*(?:건|대응))?\s*[-:：]?\s*(\d+)\s*(?:건|명|팀)?/i,
   /수출업자\s*방문(?:\s*(?:건|대응))?\s*[-:：]?\s*(\d+)\s*(?:건|명|팀)?/i,
 ];
-const DENT_ISSUE_COUNT_PATTERNS = [
-  /요철(?:\s*(?:발생|건|차량|내역|처리|확인))?\s*[-:：]?\s*(\d+)\s*(?:건|대)?/i,
-];
-const MAINTENANCE_ISSUE_COUNT_PATTERNS = [
-  /정비(?:\s*(?:발생|건|차량|입고|내역|처리|확인|요청))?\s*[-:：]?\s*(\d+)\s*(?:건|대)?/i,
-];
-const SMART_KEY_ISSUE_COUNT_PATTERNS = [
-  /스마트\s*키(?:\s*(?:불량|교체|수리|재등록|재발급|이슈|발생|건|차량|내역|처리|확인))?\s*[-:：]?\s*(\d+)\s*(?:건|대)?/i,
-  /스마트키(?:\s*(?:불량|교체|수리|재등록|재발급|이슈|발생|건|차량|내역|처리|확인))?\s*[-:：]?\s*(\d+)\s*(?:건|대)?/i,
-];
-const BATTERY_ISSUE_COUNT_PATTERNS = [
-  /배터리(?:\s*(?:교체|방전|불량|발생|건|차량|내역|처리|확인))?\s*[-:：]?\s*(\d+)\s*(?:건|대)?/i,
-];
-const OTHER_ISSUE_COUNT_PATTERNS = [
-  /기타(?:\s*(?:발생|건|차량|내역|특이사항|처리|확인))?\s*[-:：]?\s*(\d+)\s*(?:건|대)?/i,
+const COUNT_SUFFIX = String.raw`(?:\s*(?:발생|건|차량|내역|처리|확인|요청|불량|교체|복원|제거|클리닝))?\s*[-:：]?\s*(\d+)\s*(?:건|대)?`;
+export const SPECIAL_ISSUE_METRICS: SpecialIssueMetric[] = [
+  { label: "번호판 교체", countKey: "plateReplacementIssueCount", totalKey: "plateReplacementIssue", patterns: [new RegExp(String.raw`번호판\s*교체${COUNT_SUFFIX}`, "i")] },
+  { label: "유리 교체", countKey: "glassReplacementIssueCount", totalKey: "glassReplacementIssue", patterns: [new RegExp(String.raw`유리\s*교체${COUNT_SUFFIX}`, "i")] },
+  { label: "발매트 교체", countKey: "floorMatReplacementIssueCount", totalKey: "floorMatReplacementIssue", patterns: [new RegExp(String.raw`발\s*매트\s*교체${COUNT_SUFFIX}`, "i"), new RegExp(String.raw`발매트\s*교체${COUNT_SUFFIX}`, "i")] },
+  { label: "타이어 교체", countKey: "tireReplacementIssueCount", totalKey: "tireReplacementIssue", patterns: [new RegExp(String.raw`타이어\s*교체${COUNT_SUFFIX}`, "i")] },
+  { label: "기능 정비", countKey: "maintenanceIssueCount", totalKey: "maintenanceIssue", patterns: [new RegExp(String.raw`(?:기능\s*)?정비${COUNT_SUFFIX}`, "i")] },
+  { label: "덴트/요철", countKey: "dentIssueCount", totalKey: "dentIssue", patterns: [new RegExp(String.raw`덴트${COUNT_SUFFIX}`, "i"), new RegExp(String.raw`요철${COUNT_SUFFIX}`, "i")] },
+  { label: "광택", countKey: "polishingIssueCount", totalKey: "polishingIssue", patterns: [new RegExp(String.raw`광택${COUNT_SUFFIX}`, "i")] },
+  { label: "판금/도색", countKey: "bodyPaintIssueCount", totalKey: "bodyPaintIssue", patterns: [new RegExp(String.raw`판금\s*\/\s*도색${COUNT_SUFFIX}`, "i"), new RegExp(String.raw`판금\s*도색${COUNT_SUFFIX}`, "i"), new RegExp(String.raw`판금${COUNT_SUFFIX}`, "i"), new RegExp(String.raw`도색${COUNT_SUFFIX}`, "i")] },
+  { label: "라이트 복원", countKey: "lightRestorationIssueCount", totalKey: "lightRestorationIssue", patterns: [new RegExp(String.raw`라이트\s*복원${COUNT_SUFFIX}`, "i")] },
+  { label: "유리 복원", countKey: "glassRestorationIssueCount", totalKey: "glassRestorationIssue", patterns: [new RegExp(String.raw`유리\s*복원${COUNT_SUFFIX}`, "i")] },
+  { label: "실내 복원", countKey: "interiorRestorationIssueCount", totalKey: "interiorRestorationIssue", patterns: [new RegExp(String.raw`실내\s*복원${COUNT_SUFFIX}`, "i")] },
+  { label: "휠 복원", countKey: "wheelRestorationIssueCount", totalKey: "wheelRestorationIssue", patterns: [new RegExp(String.raw`휠\s*복원${COUNT_SUFFIX}`, "i")] },
+  { label: "틴팅", countKey: "tintingIssueCount", totalKey: "tintingIssue", patterns: [new RegExp(String.raw`틴팅${COUNT_SUFFIX}`, "i"), new RegExp(String.raw`썬팅${COUNT_SUFFIX}`, "i")] },
+  { label: "데칼 제거", countKey: "decalRemovalIssueCount", totalKey: "decalRemovalIssue", patterns: [new RegExp(String.raw`데칼\s*제거${COUNT_SUFFIX}`, "i")] },
+  { label: "내비/블박/후카", countKey: "navigationBlackboxRearCameraIssueCount", totalKey: "navigationBlackboxRearCameraIssue", patterns: [new RegExp(String.raw`내비\s*\/\s*블박\s*\/\s*후카${COUNT_SUFFIX}`, "i"), new RegExp(String.raw`네비\s*\/\s*블박\s*\/\s*후카${COUNT_SUFFIX}`, "i"), new RegExp(String.raw`내비${COUNT_SUFFIX}`, "i"), new RegExp(String.raw`네비${COUNT_SUFFIX}`, "i"), new RegExp(String.raw`블박${COUNT_SUFFIX}`, "i"), new RegExp(String.raw`후카${COUNT_SUFFIX}`, "i"), new RegExp(String.raw`후방\s*카메라${COUNT_SUFFIX}`, "i")] },
+  { label: "실내클리닝", countKey: "interiorCleaningIssueCount", totalKey: "interiorCleaningIssue", patterns: [new RegExp(String.raw`실내\s*클리닝${COUNT_SUFFIX}`, "i")] },
+  { label: "스마트키 불량/교체", countKey: "smartKeyIssueCount", totalKey: "smartKeyIssue", patterns: [new RegExp(String.raw`스마트\s*키${COUNT_SUFFIX}`, "i"), new RegExp(String.raw`스마트키${COUNT_SUFFIX}`, "i")] },
+  { label: "배터리 교체", countKey: "batteryIssueCount", totalKey: "batteryIssue", patterns: [new RegExp(String.raw`배터리${COUNT_SUFFIX}`, "i")] },
+  { label: "기타", countKey: "otherIssueCount", totalKey: "otherIssue", patterns: [new RegExp(String.raw`기타${COUNT_SUFFIX}`, "i")] },
 ];
 
 export function createEmptyDraft(date = formatDateInput(new Date())): DailyWorkLogDraft {
@@ -106,8 +189,22 @@ export function createEmptyDraft(date = formatDateInput(new Date())): DailyWorkL
     dailyTransportHandOverCount: 0,
     customerInboundCount: 0,
     exporterVisitCount: 0,
+    plateReplacementIssueCount: 0,
+    glassReplacementIssueCount: 0,
+    floorMatReplacementIssueCount: 0,
+    tireReplacementIssueCount: 0,
     dentIssueCount: 0,
     maintenanceIssueCount: 0,
+    polishingIssueCount: 0,
+    bodyPaintIssueCount: 0,
+    lightRestorationIssueCount: 0,
+    glassRestorationIssueCount: 0,
+    interiorRestorationIssueCount: 0,
+    wheelRestorationIssueCount: 0,
+    tintingIssueCount: 0,
+    decalRemovalIssueCount: 0,
+    navigationBlackboxRearCameraIssueCount: 0,
+    interiorCleaningIssueCount: 0,
     smartKeyIssueCount: 0,
     batteryIssueCount: 0,
     otherIssueCount: 0,
@@ -141,11 +238,9 @@ export function parseDailyWorkLog(rawText: string, today = new Date()): DailyWor
   draft.dailyTransportHandOverCount = extractCount(normalized, /금일\s*탁송\s*인계\s*[-:：]?\s*(\d+)\s*대/i);
   draft.customerInboundCount = extractCountFromPatterns(normalized, CUSTOMER_INBOUND_COUNT_PATTERNS);
   draft.exporterVisitCount = extractCountFromPatterns(normalized, EXPORTER_VISIT_COUNT_PATTERNS);
-  draft.dentIssueCount = extractLineTotalFromPatterns(normalized, DENT_ISSUE_COUNT_PATTERNS);
-  draft.maintenanceIssueCount = extractLineTotalFromPatterns(normalized, MAINTENANCE_ISSUE_COUNT_PATTERNS);
-  draft.smartKeyIssueCount = extractLineTotalFromPatterns(normalized, SMART_KEY_ISSUE_COUNT_PATTERNS);
-  draft.batteryIssueCount = extractLineTotalFromPatterns(normalized, BATTERY_ISSUE_COUNT_PATTERNS);
-  draft.otherIssueCount = extractLineTotalFromPatterns(normalized, OTHER_ISSUE_COUNT_PATTERNS);
+  SPECIAL_ISSUE_METRICS.forEach((metric) => {
+    draft[metric.countKey] = extractLineTotalFromPatterns(normalized, metric.patterns);
+  });
 
   let section: "management" | "people" | "other" | "" = "";
   let peopleSection: "shift" | "oldo" | "leave" | "publicLeave" | "" = "";
@@ -157,11 +252,7 @@ export function parseDailyWorkLog(rawText: string, today = new Date()): DailyWor
       matchesAny(line, INBOUND_COUNT_PATTERNS) ||
       matchesAny(line, CUSTOMER_INBOUND_COUNT_PATTERNS) ||
       matchesAny(line, EXPORTER_VISIT_COUNT_PATTERNS) ||
-      matchesAny(line, DENT_ISSUE_COUNT_PATTERNS) ||
-      matchesAny(line, MAINTENANCE_ISSUE_COUNT_PATTERNS) ||
-      matchesAny(line, SMART_KEY_ISSUE_COUNT_PATTERNS) ||
-      matchesAny(line, BATTERY_ISSUE_COUNT_PATTERNS) ||
-      matchesAny(line, OTHER_ISSUE_COUNT_PATTERNS) ||
+      SPECIAL_ISSUE_METRICS.some((metric) => matchesAny(line, metric.patterns)) ||
       /차량\s*출고\s*준비|준비\s*중.*특이사항|금일\s*탁송\s*인계/.test(line)
     ) continue;
     if (/금일\s*탁송\s*이력/.test(line)) continue;
@@ -244,6 +335,9 @@ export function generateWeeklyReport(
   const current = addTotals(summarizeRecords(records), manualAdjustment);
   const previous = previousTotals || emptyTotals();
   const hasPrevious = Boolean(previousTotals);
+  const issueLines = SPECIAL_ISSUE_METRICS.map(({ label, totalKey }) =>
+    `${label} - ${current[totalKey]}건${comparisonText(current[totalKey], previous[totalKey], hasPrevious, "건")}`,
+  ).join("\n");
 
   return `[${formatReportPeriod(startDate, endDate)} 항동PDI센터]
 
@@ -261,11 +355,7 @@ export function generateWeeklyReport(
 
 출고 중 특이사항 발생 건 - ${current.special}건${comparisonText(current.special, previous.special, hasPrevious, "건")}
 
-요철 - ${current.dentIssue}건${comparisonText(current.dentIssue, previous.dentIssue, hasPrevious, "건")}
-정비 - ${current.maintenanceIssue}건${comparisonText(current.maintenanceIssue, previous.maintenanceIssue, hasPrevious, "건")}
-스마트키 불량/교체 - ${current.smartKeyIssue}건${comparisonText(current.smartKeyIssue, previous.smartKeyIssue, hasPrevious, "건")}
-배터리 교체 - ${current.batteryIssue}건${comparisonText(current.batteryIssue, previous.batteryIssue, hasPrevious, "건")}
-기타 - ${current.otherIssue}건${comparisonText(current.otherIssue, previous.otherIssue, hasPrevious, "건")}
+${issueLines}
 
 루틴 업무
 (수기 입력)
@@ -348,11 +438,7 @@ export function getExtractionWarnings(record: DailyWorkLog) {
     { label: "특이사항", pattern: /특이사항\s*차량\s*(?:총)?\s*\d+\s*대/i },
     { label: "고객 인입", patterns: CUSTOMER_INBOUND_COUNT_PATTERNS, optional: true },
     { label: "수출업자 방문", patterns: EXPORTER_VISIT_COUNT_PATTERNS, optional: true },
-    { label: "요철", patterns: DENT_ISSUE_COUNT_PATTERNS, optional: true },
-    { label: "정비", patterns: MAINTENANCE_ISSUE_COUNT_PATTERNS, optional: true },
-    { label: "스마트키 불량/교체", patterns: SMART_KEY_ISSUE_COUNT_PATTERNS, optional: true },
-    { label: "배터리 교체", patterns: BATTERY_ISSUE_COUNT_PATTERNS, optional: true },
-    { label: "기타 특이사항", patterns: OTHER_ISSUE_COUNT_PATTERNS, optional: true },
+    ...SPECIAL_ISSUE_METRICS.map((metric) => ({ label: metric.label, patterns: metric.patterns, optional: true })),
   ];
   return checks
     .filter((check) => !check.optional)
@@ -378,22 +464,18 @@ export function formatDateTime(value: string) {
 }
 
 function summarizeRecords(records: DailyWorkLog[]): WeeklyReportTotals {
-  return records.reduce(
-    (summary, record) => ({
-      inbound: summary.inbound + (Number(record.dailyInboundCount) || 0),
-      ready: summary.ready + (Number(record.dailyReadyCount) || 0),
-      special: summary.special + (Number(record.specialReadyCount) || 0),
-      handover: summary.handover + (Number(record.dailyTransportHandOverCount) || 0),
-      customerInbound: summary.customerInbound + (Number(record.customerInboundCount) || 0),
-      exporterVisit: summary.exporterVisit + (Number(record.exporterVisitCount) || 0),
-      dentIssue: summary.dentIssue + (Number(record.dentIssueCount) || 0),
-      maintenanceIssue: summary.maintenanceIssue + (Number(record.maintenanceIssueCount) || 0),
-      smartKeyIssue: summary.smartKeyIssue + (Number(record.smartKeyIssueCount) || 0),
-      batteryIssue: summary.batteryIssue + (Number(record.batteryIssueCount) || 0),
-      otherIssue: summary.otherIssue + (Number(record.otherIssueCount) || 0),
-    }),
-    emptyTotals(),
-  );
+  return records.reduce((summary, record) => {
+    summary.inbound += Number(record.dailyInboundCount) || 0;
+    summary.ready += Number(record.dailyReadyCount) || 0;
+    summary.special += Number(record.specialReadyCount) || 0;
+    summary.handover += Number(record.dailyTransportHandOverCount) || 0;
+    summary.customerInbound += Number(record.customerInboundCount) || 0;
+    summary.exporterVisit += Number(record.exporterVisitCount) || 0;
+    SPECIAL_ISSUE_METRICS.forEach((metric) => {
+      summary[metric.totalKey] += Number(record[metric.countKey]) || 0;
+    });
+    return summary;
+  }, emptyTotals());
 }
 
 function comparisonText(current: number, previous: number, enabled: boolean, unit: string) {
@@ -404,19 +486,37 @@ function comparisonText(current: number, previous: number, enabled: boolean, uni
 }
 
 function addTotals(base: WeeklyReportTotals, adjustment: WeeklyManualAdjustment): WeeklyReportTotals {
-  return {
+  const totals: WeeklyReportTotals = {
     inbound: base.inbound + (Number(adjustment.inbound) || 0),
     ready: base.ready + (Number(adjustment.ready) || 0),
     special: base.special + (Number(adjustment.special) || 0),
     handover: base.handover + (Number(adjustment.handover) || 0),
     customerInbound: base.customerInbound + (Number(adjustment.customerInbound) || 0),
     exporterVisit: base.exporterVisit + (Number(adjustment.exporterVisit) || 0),
-    dentIssue: base.dentIssue + (Number(adjustment.dentIssue) || 0),
-    maintenanceIssue: base.maintenanceIssue + (Number(adjustment.maintenanceIssue) || 0),
-    smartKeyIssue: base.smartKeyIssue + (Number(adjustment.smartKeyIssue) || 0),
-    batteryIssue: base.batteryIssue + (Number(adjustment.batteryIssue) || 0),
-    otherIssue: base.otherIssue + (Number(adjustment.otherIssue) || 0),
+    plateReplacementIssue: 0,
+    glassReplacementIssue: 0,
+    floorMatReplacementIssue: 0,
+    tireReplacementIssue: 0,
+    dentIssue: 0,
+    maintenanceIssue: 0,
+    polishingIssue: 0,
+    bodyPaintIssue: 0,
+    lightRestorationIssue: 0,
+    glassRestorationIssue: 0,
+    interiorRestorationIssue: 0,
+    wheelRestorationIssue: 0,
+    tintingIssue: 0,
+    decalRemovalIssue: 0,
+    navigationBlackboxRearCameraIssue: 0,
+    interiorCleaningIssue: 0,
+    smartKeyIssue: 0,
+    batteryIssue: 0,
+    otherIssue: 0,
   };
+  SPECIAL_ISSUE_METRICS.forEach((metric) => {
+    totals[metric.totalKey] = (Number(base[metric.totalKey]) || 0) + (Number(adjustment[metric.totalKey]) || 0);
+  });
+  return totals;
 }
 
 function emptyTotals(): WeeklyReportTotals {
@@ -427,8 +527,22 @@ function emptyTotals(): WeeklyReportTotals {
     handover: 0,
     customerInbound: 0,
     exporterVisit: 0,
+    plateReplacementIssue: 0,
+    glassReplacementIssue: 0,
+    floorMatReplacementIssue: 0,
+    tireReplacementIssue: 0,
     dentIssue: 0,
     maintenanceIssue: 0,
+    polishingIssue: 0,
+    bodyPaintIssue: 0,
+    lightRestorationIssue: 0,
+    glassRestorationIssue: 0,
+    interiorRestorationIssue: 0,
+    wheelRestorationIssue: 0,
+    tintingIssue: 0,
+    decalRemovalIssue: 0,
+    navigationBlackboxRearCameraIssue: 0,
+    interiorCleaningIssue: 0,
     smartKeyIssue: 0,
     batteryIssue: 0,
     otherIssue: 0,

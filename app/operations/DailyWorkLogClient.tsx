@@ -10,6 +10,7 @@ import {
   getMeetingPeriod,
   parseDailyWorkLog,
   shiftDate,
+  SPECIAL_ISSUE_METRICS,
   summarizeWeeklyRecords,
   WEEKLY_REPORT_STORAGE_KEY,
   type DailyWorkLog,
@@ -29,7 +30,11 @@ const EXAMPLE_TEXT = `[06/09 (화) 항동 - PDI 일일 업무일지]
 
 • 고객 인입 - 2건
 • 수출업자 방문 - 1건
-• 정비 - 2건
+• 번호판 교체 - 0건
+• 유리 교체 - 0건
+• 기능 정비 - 2건
+• 덴트 - 1건
+• 내비/블박/후카 - 0건
 • 스마트키 교체 - 1건
 
 • 항동 관리 업무
@@ -288,7 +293,7 @@ export default function DailyWorkLogClient() {
                 <span>
                   입고 {record.dailyInboundCount || 0} · 출고 {record.dailyTransportHandOverCount} ·
                   출고준비 {record.dailyReadyCount} · 특이사항 {record.specialReadyCount} ·
-                  정비 {record.maintenanceIssueCount || 0} · 스마트키 {record.smartKeyIssueCount || 0} ·
+                  특이세부 {sumSpecialIssueDetails(record)} ·
                   고객 {record.customerInboundCount || 0} · 수출 {record.exporterVisitCount || 0}
                 </span>
                 <small>수정 {formatDateTime(record.updatedAt)}</small>
@@ -352,8 +357,7 @@ export default function DailyWorkLogClient() {
                   출고 {item.records.reduce((sum, record) => sum + record.dailyTransportHandOverCount, 0)} ·
                   준비 {item.records.reduce((sum, record) => sum + record.dailyReadyCount, 0)} ·
                   특이 {item.records.reduce((sum, record) => sum + record.specialReadyCount, 0)} ·
-                  정비 {item.records.reduce((sum, record) => sum + (record.maintenanceIssueCount || 0), 0)} ·
-                  스마트키 {item.records.reduce((sum, record) => sum + (record.smartKeyIssueCount || 0), 0)} ·
+                  특이세부 {item.records.reduce((sum, record) => sum + sumSpecialIssueDetails(record), 0)} ·
                   고객 {item.records.reduce((sum, record) => sum + (record.customerInboundCount || 0), 0)} ·
                   수출 {item.records.reduce((sum, record) => sum + (record.exporterVisitCount || 0), 0)}
                 </p>
@@ -384,11 +388,9 @@ export default function DailyWorkLogClient() {
               <Metric label="특이사항 차량" value={totals.special} />
               <Metric label="고객 인입" value={totals.customerInbound} unit="건" />
               <Metric label="수출업자 방문" value={totals.exporterVisit} unit="건" />
-              <Metric label="요철" value={totals.dentIssue} unit="건" />
-              <Metric label="정비" value={totals.maintenanceIssue} unit="건" />
-              <Metric label="스마트키 불량/교체" value={totals.smartKeyIssue} unit="건" />
-              <Metric label="배터리 교체" value={totals.batteryIssue} unit="건" />
-              <Metric label="기타 특이사항" value={totals.otherIssue} unit="건" />
+              {SPECIAL_ISSUE_METRICS.map((metric) => (
+                <Metric key={metric.totalKey} label={metric.label} value={totals[metric.totalKey]} unit="건" />
+              ))}
             </div>
           </div>
 
@@ -404,11 +406,14 @@ export default function DailyWorkLogClient() {
               <ManualMetric label="특이사항" value={manualAdjustment.special || 0} onChange={(value) => updateManualAdjustment("special", value)} />
               <ManualMetric label="고객 인입" value={manualAdjustment.customerInbound || 0} onChange={(value) => updateManualAdjustment("customerInbound", value)} />
               <ManualMetric label="수출업자 방문" value={manualAdjustment.exporterVisit || 0} onChange={(value) => updateManualAdjustment("exporterVisit", value)} />
-              <ManualMetric label="요철" value={manualAdjustment.dentIssue || 0} onChange={(value) => updateManualAdjustment("dentIssue", value)} />
-              <ManualMetric label="정비" value={manualAdjustment.maintenanceIssue || 0} onChange={(value) => updateManualAdjustment("maintenanceIssue", value)} />
-              <ManualMetric label="스마트키 불량/교체" value={manualAdjustment.smartKeyIssue || 0} onChange={(value) => updateManualAdjustment("smartKeyIssue", value)} />
-              <ManualMetric label="배터리 교체" value={manualAdjustment.batteryIssue || 0} onChange={(value) => updateManualAdjustment("batteryIssue", value)} />
-              <ManualMetric label="기타" value={manualAdjustment.otherIssue || 0} onChange={(value) => updateManualAdjustment("otherIssue", value)} />
+              {SPECIAL_ISSUE_METRICS.map((metric) => (
+                <ManualMetric
+                  key={metric.totalKey}
+                  label={metric.label}
+                  value={manualAdjustment[metric.totalKey] || 0}
+                  onChange={(value) => updateManualAdjustment(metric.totalKey, value)}
+                />
+              ))}
             </div>
           </div>
         </div>
@@ -428,7 +433,7 @@ export default function DailyWorkLogClient() {
           className="weekly-report-output"
           value={weeklyReport}
           onChange={(event) => setWeeklyReport(event.target.value)}
-          placeholder="기간 내 등록된 업무일지를 기준으로 입고·출고·출고준비·특이사항·정비·스마트키 불량/교체 수치를 작성합니다."
+          placeholder="기간 내 등록된 업무일지를 기준으로 입고·출고·출고준비·특이사항 및 세부 항목 수치를 작성합니다."
         />
 
         <div className="weekly-snapshot-panel">
@@ -445,7 +450,7 @@ export default function DailyWorkLogClient() {
                   <strong>{formatCoverageDate(snapshot.startDate)} - {formatCoverageDate(snapshot.endDate)}</strong>
                   <span>
                     입고 {snapshot.totals.inbound} · 출고 {snapshot.totals.handover} · 준비 {snapshot.totals.ready} ·
-                    특이 {snapshot.totals.special} · 정비 {snapshot.totals.maintenanceIssue} · 스마트키 {snapshot.totals.smartKeyIssue} ·
+                    특이 {snapshot.totals.special} · 특이세부 {sumSpecialIssueTotals(snapshot.totals)} ·
                     고객 {snapshot.totals.customerInbound} · 수출 {snapshot.totals.exporterVisit}
                   </span>
                   <small>저장 {formatDateTime(snapshot.updatedAt)}</small>
@@ -493,6 +498,14 @@ function formatCoverageDate(date: string) {
   return `${Number(month)}/${Number(day)}`;
 }
 
+function sumSpecialIssueDetails(record: DailyWorkLog) {
+  return SPECIAL_ISSUE_METRICS.reduce((sum, metric) => sum + (Number(record[metric.countKey]) || 0), 0);
+}
+
+function sumSpecialIssueTotals(totals: WeeklyReportTotals) {
+  return SPECIAL_ISSUE_METRICS.reduce((sum, metric) => sum + (Number(totals[metric.totalKey]) || 0), 0);
+}
+
 function summarize(records: DailyWorkLog[]) {
   return summarizeWeeklyRecords(records);
 }
@@ -506,11 +519,7 @@ function normalizeRecords(value: unknown): DailyWorkLog[] {
       dailyInboundCount: Number(record.dailyInboundCount) || 0,
       customerInboundCount: Number(record.customerInboundCount) || 0,
       exporterVisitCount: Number(record.exporterVisitCount) || 0,
-      dentIssueCount: Number(record.dentIssueCount) || 0,
-      maintenanceIssueCount: Number(record.maintenanceIssueCount) || 0,
-      smartKeyIssueCount: Number(record.smartKeyIssueCount) || 0,
-      batteryIssueCount: Number(record.batteryIssueCount) || 0,
-      otherIssueCount: Number(record.otherIssueCount) || 0,
+      ...Object.fromEntries(SPECIAL_ISSUE_METRICS.map((metric) => [metric.countKey, Number(record[metric.countKey]) || 0])),
     }));
 }
 
@@ -520,21 +529,39 @@ function normalizeWeeklySnapshots(value: unknown): WeeklyReportSnapshot[] {
     .filter((snapshot): snapshot is WeeklyReportSnapshot => Boolean(snapshot && typeof snapshot === "object" && "id" in snapshot && "totals" in snapshot))
     .map((snapshot) => ({
       ...snapshot,
-      totals: {
-        inbound: Number(snapshot.totals?.inbound) || 0,
-        ready: Number(snapshot.totals?.ready) || 0,
-        special: Number(snapshot.totals?.special) || 0,
-        handover: Number(snapshot.totals?.handover) || 0,
-        customerInbound: Number(snapshot.totals?.customerInbound) || 0,
-        exporterVisit: Number(snapshot.totals?.exporterVisit) || 0,
-        dentIssue: Number(snapshot.totals?.dentIssue) || 0,
-        maintenanceIssue: Number(snapshot.totals?.maintenanceIssue) || 0,
-        smartKeyIssue: Number(snapshot.totals?.smartKeyIssue) || 0,
-        batteryIssue: Number(snapshot.totals?.batteryIssue) || 0,
-        otherIssue: Number(snapshot.totals?.otherIssue) || 0,
-      },
+      totals: normalizeWeeklyTotals(snapshot.totals),
     }))
     .sort((a, b) => b.endDate.localeCompare(a.endDate));
+}
+
+function normalizeWeeklyTotals(totals: Partial<WeeklyReportTotals> | undefined): WeeklyReportTotals {
+  return {
+    inbound: Number(totals?.inbound) || 0,
+    ready: Number(totals?.ready) || 0,
+    special: Number(totals?.special) || 0,
+    handover: Number(totals?.handover) || 0,
+    customerInbound: Number(totals?.customerInbound) || 0,
+    exporterVisit: Number(totals?.exporterVisit) || 0,
+    plateReplacementIssue: Number(totals?.plateReplacementIssue) || 0,
+    glassReplacementIssue: Number(totals?.glassReplacementIssue) || 0,
+    floorMatReplacementIssue: Number(totals?.floorMatReplacementIssue) || 0,
+    tireReplacementIssue: Number(totals?.tireReplacementIssue) || 0,
+    dentIssue: Number(totals?.dentIssue) || 0,
+    maintenanceIssue: Number(totals?.maintenanceIssue) || 0,
+    polishingIssue: Number(totals?.polishingIssue) || 0,
+    bodyPaintIssue: Number(totals?.bodyPaintIssue) || 0,
+    lightRestorationIssue: Number(totals?.lightRestorationIssue) || 0,
+    glassRestorationIssue: Number(totals?.glassRestorationIssue) || 0,
+    interiorRestorationIssue: Number(totals?.interiorRestorationIssue) || 0,
+    wheelRestorationIssue: Number(totals?.wheelRestorationIssue) || 0,
+    tintingIssue: Number(totals?.tintingIssue) || 0,
+    decalRemovalIssue: Number(totals?.decalRemovalIssue) || 0,
+    navigationBlackboxRearCameraIssue: Number(totals?.navigationBlackboxRearCameraIssue) || 0,
+    interiorCleaningIssue: Number(totals?.interiorCleaningIssue) || 0,
+    smartKeyIssue: Number(totals?.smartKeyIssue) || 0,
+    batteryIssue: Number(totals?.batteryIssue) || 0,
+    otherIssue: Number(totals?.otherIssue) || 0,
+  };
 }
 
 function findPreviousSnapshot(snapshots: WeeklyReportSnapshot[], startDate: string) {
