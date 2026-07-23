@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import type { LauncherUpdateNotice as LauncherUpdateNoticePayload } from "../electronBridge";
 
 const DISMISSED_STORAGE_KEY = "pdi-dismissed-launcher-update-notice";
+const FIRED_STORAGE_KEY = "pdi-fired-launcher-update-notice";
 
 function getDismissedIds() {
   try {
@@ -31,11 +32,14 @@ export default function LauncherUpdateNotice() {
 
     async function loadNotice() {
       const nextNotice = await window.pdiLauncherUpdateNotice?.get();
-      if (!canceled) setNotice(nextNotice || null);
+      if (!canceled) {
+        setNotice(nextNotice || null);
+        if (nextNotice) fireDesktopNotification(nextNotice);
+      }
     }
 
     loadNotice();
-    const timer = window.setInterval(loadNotice, 60_000);
+    const timer = window.setInterval(loadNotice, 30_000);
     return () => {
       canceled = true;
       window.clearInterval(timer);
@@ -73,4 +77,27 @@ export default function LauncherUpdateNotice() {
       </aside>
     </section>
   );
+}
+
+function fireDesktopNotification(notice: LauncherUpdateNoticePayload) {
+  if (!("Notification" in window)) return;
+  const firedKey = `${FIRED_STORAGE_KEY}:${notice.id}`;
+  if (localStorage.getItem(firedKey)) return;
+
+  const show = () => {
+    localStorage.setItem(firedKey, new Date().toISOString());
+    new Notification(notice.title, {
+      body: `${notice.message} 업무 내용을 저장한 뒤 재시작해 주세요.`,
+      tag: notice.id,
+      requireInteraction: true,
+    });
+  };
+
+  if (Notification.permission === "granted") {
+    show();
+  } else if (Notification.permission !== "denied") {
+    Notification.requestPermission().then((permission) => {
+      if (permission === "granted") show();
+    });
+  }
 }

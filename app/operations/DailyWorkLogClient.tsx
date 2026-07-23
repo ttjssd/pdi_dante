@@ -44,6 +44,25 @@ const EXAMPLE_TEXT = `[06/09 (화) 항동 - PDI 일일 업무일지]
 • 8TO16
   ○ poty, soom`;
 
+const CORE_MANUAL_OPTIONS: { label: string; key: keyof WeeklyReportTotals; unit: string; group: string }[] = [
+  { label: "입고", key: "inbound", unit: "대", group: "핵심" },
+  { label: "출고", key: "handover", unit: "대", group: "핵심" },
+  { label: "출고준비", key: "ready", unit: "대", group: "핵심" },
+  { label: "특이사항", key: "special", unit: "건", group: "핵심" },
+  { label: "고객 인입", key: "customerInbound", unit: "건", group: "그 외" },
+  { label: "수출업자 방문", key: "exporterVisit", unit: "건", group: "그 외" },
+];
+
+const MANUAL_ADJUSTMENT_OPTIONS = [
+  ...CORE_MANUAL_OPTIONS,
+  ...SPECIAL_ISSUE_METRICS.map((metric) => ({
+    label: metric.label,
+    key: metric.totalKey,
+    unit: "건",
+    group: "특이사항 상세",
+  })),
+];
+
 export default function DailyWorkLogClient() {
   const [records, setRecords] = useState<DailyWorkLog[]>([]);
   const [rawText, setRawText] = useState("");
@@ -54,6 +73,8 @@ export default function DailyWorkLogClient() {
   const [weeklyReport, setWeeklyReport] = useState("");
   const [weeklySnapshots, setWeeklySnapshots] = useState<WeeklyReportSnapshot[]>([]);
   const [manualAdjustment, setManualAdjustment] = useState<WeeklyManualAdjustment>({});
+  const [manualSearch, setManualSearch] = useState("입고");
+  const [manualValue, setManualValue] = useState("0");
   const importInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -102,6 +123,8 @@ export default function DailyWorkLogClient() {
   );
   const hasPreviousTotals = Boolean(previousSnapshot || previousRecords.length > 0);
   const totals = useMemo(() => summarizeWeeklyRecords(autoCurrentRecords, manualAdjustment), [autoCurrentRecords, manualAdjustment]);
+  const activeSpecialMetrics = SPECIAL_ISSUE_METRICS.filter((metric) => totals[metric.totalKey] > 0);
+  const activeManualAdjustments = MANUAL_ADJUSTMENT_OPTIONS.filter((option) => Number(manualAdjustment[option.key]) > 0);
   const weeklyStatuses = useMemo(
     () => buildWeeklyRecordStatuses(records, period.start, period.end),
     [records, period],
@@ -174,6 +197,33 @@ export default function DailyWorkLogClient() {
   function updateManualAdjustment(key: keyof WeeklyReportTotals, value: string) {
     const numberValue = Number(value);
     setManualAdjustment((current) => ({ ...current, [key]: Number.isFinite(numberValue) ? Math.max(0, numberValue) : 0 }));
+  }
+
+  function addManualAdjustment() {
+    const normalizedSearch = manualSearch.trim().toLowerCase();
+    const option = MANUAL_ADJUSTMENT_OPTIONS.find((item) => item.label.toLowerCase() === normalizedSearch)
+      || MANUAL_ADJUSTMENT_OPTIONS.find((item) => item.label.toLowerCase().includes(normalizedSearch));
+    const numberValue = Number(manualValue);
+    if (!option) {
+      setMessage("수기 입력 항목을 목록에서 선택해주세요.");
+      return;
+    }
+    if (!Number.isFinite(numberValue) || numberValue < 0) {
+      setMessage("수기 입력 값은 0 이상의 숫자로 입력해주세요.");
+      return;
+    }
+    updateManualAdjustment(option.key, String(numberValue));
+    setManualSearch(option.label);
+    setManualValue("0");
+    setMessage(`${option.label} 수기 값을 ${numberValue}${option.unit}으로 기록했습니다.`);
+  }
+
+  function clearManualAdjustment(key: keyof WeeklyReportTotals) {
+    setManualAdjustment((current) => {
+      const next = { ...current };
+      delete next[key];
+      return next;
+    });
   }
 
   function saveWeeklyReportSnapshot() {
@@ -386,34 +436,56 @@ export default function DailyWorkLogClient() {
               <Metric label="출고 완료" value={totals.handover} />
               <Metric label="출고준비 완료" value={totals.ready} />
               <Metric label="특이사항 차량" value={totals.special} />
-              <Metric label="고객 인입" value={totals.customerInbound} unit="건" />
-              <Metric label="수출업자 방문" value={totals.exporterVisit} unit="건" />
-              {SPECIAL_ISSUE_METRICS.map((metric) => (
-                <Metric key={metric.totalKey} label={metric.label} value={totals[metric.totalKey]} unit="건" />
-              ))}
+            </div>
+            <div className="weekly-detail-strip">
+              <strong>특이사항 상세</strong>
+              {activeSpecialMetrics.length > 0 ? (
+                <div>
+                  {activeSpecialMetrics.map((metric) => (
+                    <span key={metric.totalKey}>{metric.label} <b>{totals[metric.totalKey]}건</b></span>
+                  ))}
+                </div>
+              ) : (
+                <p>집계된 상세 특이사항이 없습니다.</p>
+              )}
+            </div>
+            <div className="weekly-other-strip">
+              <strong>그 외</strong>
+              <span>고객 인입 <b>{totals.customerInbound}건</b></span>
+              <span>수출업자 방문 <b>{totals.exporterVisit}건</b></span>
             </div>
           </div>
 
           <div className="weekly-thursday-panel">
             <div>
               <strong>목요일 수기 확인 값</strong>
-              <p>목요일 오후 회의 전에 직접 확인한 숫자를 입력하면 금~수 자동 합계에 더해집니다.</p>
+              <p>항목을 검색해 선택하고 값을 기록하면 금~수 자동 합계에 더해집니다.</p>
             </div>
-            <div className="weekly-thursday-grid">
-              <ManualMetric label="입고" value={manualAdjustment.inbound || 0} onChange={(value) => updateManualAdjustment("inbound", value)} />
-              <ManualMetric label="출고" value={manualAdjustment.handover || 0} onChange={(value) => updateManualAdjustment("handover", value)} />
-              <ManualMetric label="출고준비" value={manualAdjustment.ready || 0} onChange={(value) => updateManualAdjustment("ready", value)} />
-              <ManualMetric label="특이사항" value={manualAdjustment.special || 0} onChange={(value) => updateManualAdjustment("special", value)} />
-              <ManualMetric label="고객 인입" value={manualAdjustment.customerInbound || 0} onChange={(value) => updateManualAdjustment("customerInbound", value)} />
-              <ManualMetric label="수출업자 방문" value={manualAdjustment.exporterVisit || 0} onChange={(value) => updateManualAdjustment("exporterVisit", value)} />
-              {SPECIAL_ISSUE_METRICS.map((metric) => (
-                <ManualMetric
-                  key={metric.totalKey}
-                  label={metric.label}
-                  value={manualAdjustment[metric.totalKey] || 0}
-                  onChange={(value) => updateManualAdjustment(metric.totalKey, value)}
-                />
+            <div className="weekly-manual-picker">
+              <label>
+                <span>항목 검색</span>
+                <input list="weekly-manual-options" value={manualSearch} onChange={(event) => setManualSearch(event.target.value)} placeholder="입고, 고객 인입, 덴트..." />
+                <datalist id="weekly-manual-options">
+                  {MANUAL_ADJUSTMENT_OPTIONS.map((option) => (
+                    <option key={option.key} value={option.label}>{option.group}</option>
+                  ))}
+                </datalist>
+              </label>
+              <label>
+                <span>수기 값</span>
+                <input type="number" min="0" value={manualValue} onChange={(event) => setManualValue(event.target.value)} />
+              </label>
+              <button className="platform-button button-primary" type="button" onClick={addManualAdjustment}>기록</button>
+            </div>
+            <div className="weekly-manual-active-list">
+              {activeManualAdjustments.map((option) => (
+                <button type="button" key={option.key} onClick={() => clearManualAdjustment(option.key)}>
+                  <span>{option.group}</span>
+                  <strong>{option.label} {manualAdjustment[option.key]}{option.unit}</strong>
+                  <small>클릭 시 삭제</small>
+                </button>
               ))}
+              {activeManualAdjustments.length === 0 && <p>기록된 목요일 수기 값이 없습니다.</p>}
             </div>
           </div>
         </div>
@@ -470,15 +542,6 @@ export default function DailyWorkLogClient() {
 
 function Metric({ label, value, unit = "대" }: { label: string; value: number; unit?: string }) {
   return <article><span>{label}</span><strong>{value}<small>{unit}</small></strong></article>;
-}
-
-function ManualMetric({ label, value, onChange }: { label: string; value: number; onChange: (value: string) => void }) {
-  return (
-    <label>
-      <span>{label}</span>
-      <input type="number" min="0" value={value} onChange={(event) => onChange(event.target.value)} />
-    </label>
-  );
 }
 
 function StatusLabel({ state, count }: { state: "complete" | "missing" | "future" | "duplicate" | "warning" | "manual"; count: number }) {

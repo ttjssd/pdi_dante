@@ -47,7 +47,7 @@ const manifest = {
   version,
   minLauncherVersion: "1.0.0",
   releaseDate,
-  notes: ["2.1.6 업무일지 특이사항 세부 항목 16종 자동 인식 및 주간 회의록 합산 추가"],
+  notes: ["2.1.7 주간 회의록 HUD/수기 입력 UX 정리 및 앱 종료 후 런처 즉시 업데이트 감지 추가"],
   packages: {
     windows: {
       url: packageUrl,

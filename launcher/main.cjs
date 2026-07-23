@@ -24,6 +24,7 @@ const DEFAULT_SETTINGS = {
 
 let mainWindow;
 let runningApp;
+let postExitUpdateCheckTimer;
 let privateModeUnlocked = false;
 let state = {
   phase: "starting",
@@ -335,6 +336,18 @@ async function checkForUpdates({ installWhenMissing = true } = {}) {
   }
 }
 
+function schedulePostExitUpdateCheck() {
+  if (postExitUpdateCheckTimer) clearTimeout(postExitUpdateCheckTimer);
+  postExitUpdateCheckTimer = setTimeout(() => {
+    postExitUpdateCheckTimer = null;
+    if (runningApp && runningApp.exitCode === null) return;
+    log("app closed; checking for updates immediately");
+    checkForUpdates({ installWhenMissing: false }).catch((error) => {
+      log(`post-exit update check failed: ${error.stack || error.message}`);
+    });
+  }, 800);
+}
+
 async function downloadPackage(url, destination, expectedSize) {
   fs.mkdirSync(path.dirname(destination), { recursive: true });
   if (!/^https?:\/\//i.test(url)) {
@@ -562,6 +575,7 @@ async function startBackoffice() {
         mainWindow.focus();
       }
       sendState({ phase: "ready", canStart: true, busy: false, message: "업무 앱이 종료되었습니다" });
+      schedulePostExitUpdateCheck();
     });
   });
 }

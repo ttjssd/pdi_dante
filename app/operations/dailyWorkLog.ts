@@ -335,16 +335,29 @@ export function generateWeeklyReport(
   const current = addTotals(summarizeRecords(records), manualAdjustment);
   const previous = previousTotals || emptyTotals();
   const hasPrevious = Boolean(previousTotals);
-  const issueLines = SPECIAL_ISSUE_METRICS.map(({ label, totalKey }) =>
-    `${label} - ${current[totalKey]}건${comparisonText(current[totalKey], previous[totalKey], hasPrevious, "건")}`,
-  ).join("\n");
+  const issueLines = SPECIAL_ISSUE_METRICS
+    .filter(({ totalKey }) => current[totalKey] > 0)
+    .map(({ label, totalKey }) => `${label} - ${current[totalKey]}건`)
+    .join("\n");
+  const specialIssueBlock = current.special > 0
+    ? [
+        `출고 중 특이사항 발생 건 - ${current.special}건${comparisonText(current.special, previous.special, hasPrevious, "건")}`,
+        issueLines,
+      ].filter(Boolean).join("\n\n")
+    : "";
+  const otherLines = [
+    current.customerInbound > 0
+      ? `고객 인입 - ${current.customerInbound}건${comparisonText(current.customerInbound, previous.customerInbound, hasPrevious, "건")}`
+      : "",
+    current.exporterVisit > 0
+      ? `수출업자 방문 - ${current.exporterVisit}건${comparisonText(current.exporterVisit, previous.exporterVisit, hasPrevious, "건")}`
+      : "",
+    "(수기 입력)",
+  ].filter(Boolean).join("\n");
 
   return `[${formatReportPeriod(startDate, endDate)} 항동PDI센터]
 
 금주 입고 완료 - ${current.inbound}대${comparisonText(current.inbound, previous.inbound, hasPrevious, "대")}
-
-고객 인입 - ${current.customerInbound}건${comparisonText(current.customerInbound, previous.customerInbound, hasPrevious, "건")}
-수출업자 방문 - ${current.exporterVisit}건${comparisonText(current.exporterVisit, previous.exporterVisit, hasPrevious, "건")}
 
 금주 탁송인계 완료
 출고완료 - ${current.handover}대${comparisonText(current.handover, previous.handover, hasPrevious, "대")}
@@ -353,15 +366,13 @@ export function generateWeeklyReport(
 금주 출고준비 완료
 출고준비완료 - ${current.ready}대${comparisonText(current.ready, previous.ready, hasPrevious, "대")}
 
-출고 중 특이사항 발생 건 - ${current.special}건${comparisonText(current.special, previous.special, hasPrevious, "건")}
-
-${issueLines}
+${specialIssueBlock ? `${specialIssueBlock}\n` : ""}
 
 루틴 업무
 (수기 입력)
 
 그 외
-(수기 입력)
+${otherLines}
 
 개선사항 및 논의내용
 (수기 입력)

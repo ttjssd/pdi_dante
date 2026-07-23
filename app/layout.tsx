@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import LauncherUpdateNotice from "./components/LauncherUpdateNotice";
 import { APP_DESCRIPTION, APP_NAME } from "./config";
 
 export const metadata: Metadata = {
@@ -15,7 +16,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko">
-      <body>{children}</body>
+      <body>
+        <LauncherUpdateNotice />
+        {children}
+      </body>
     </html>
   );
 }
